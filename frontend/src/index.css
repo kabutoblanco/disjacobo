@@ -1,0 +1,29 @@
+.btn-primary {
+  background-color: #3483fa;
+  border-color: #3483fa;
+}
+
+.capitalize {
+  text-transform: uppercase;
+}
+
+.card-header {
+  background-color: rgb(63, 147, 166, 0.5);
+  font-weight: bold;
+}
+
+.card, .ReactTable {
+  border-color: rgba(0, 0, 0, 0.63) !important;
+}
+
+.rt-thead {
+  background-color: rgb(63, 147, 166, 0.5);
+}
+
+.pagination-bottom {
+  background-color: rgba(133, 133, 133, 0.4);
+}
+
+.link-button {
+  color: rgb(0, 99, 121);
+}

@@ -1,0 +1,134 @@
+.main-menu {
+  font-size: large;
+  font-weight: bold;
+  justify-content: center;
+  width: 100%;
+}
+
+#nav-top {
+  background-color: #3F93A6;
+}
+
+#nav-top nav {
+  background-color: #3F93A6 !important;
+}
+
+.main-menu a {
+  color: rgb(120, 74, 71);
+  margin: auto 12px;
+  text-decoration: none;
+  text-transform: uppercase;
+}
+
+.cart {
+  color: rgb(120, 74, 71);
+}
+
+.main-menu a:hover {
+  color: rgb(120, 74, 71, 0.5);
+  text-decoration: none;
+}
+
+#nav-top {
+  position: sticky;
+  top: 0;
+  z-index: 11;
+}
+
+.active-custom {
+  border-bottom: 2px solid rgb(120, 74, 71);
+  font-weight: bolder;
+}
+
+.cart {
+  min-width: 25px;
+  position: relative;
+  width: fit-content;
+}
+
+.count-cart {
+  background: red;
+  border-radius: 4px;
+  color: white;
+  font-size: 10px;
+  line-height: 14px;
+  min-width: 10px;
+  position: absolute;
+  top: 0;
+  text-align: center;
+  right: 0;
+}
+
+.btn-salir {
+  border: none;
+  font-weight: bold;
+  color: #400808;
+}
+
+.btn-salir:hover {
+  border: none;
+  background: none;
+  color: white;
+}
+
+#expand-menu {
+  display: none;
+}
+
+.label-menu img:hover {
+  cursor: pointer;
+}
+
+.navlateral {
+  transition: all 0.5s;
+}
+
+#expand-menu:checked ~ .navlateral {
+  margin-left: -150px;
+  transition: all 0.5s;
+}
+
+.visible {
+  margin-left: -150px;
+  transition: all 0.5s;
+}
+
+.hidden {
+  margin-left: 0px;
+  transition: all 0.5s;
+}
+
+@media only screen and (min-width: 575px) {
+  .cart-top {
+    display: none;
+  }
+
+  .cart-inner {
+    display: inline;
+  }
+
+  .cart-top .fa-w-18 {
+    width: 1.35rem;
+  }
+}
+
+@media only screen and (max-width: 575px) {
+  .cart-top {
+    display: inline;
+    position: absolute;
+    right: 11px;
+    top: 15px;
+  }
+
+  .main-menu {
+    text-align: center;
+  }
+
+  .cart-inner {
+    display: none;
+  }
+
+  .navbar-toggler {
+    margin: auto;
+  }
+}

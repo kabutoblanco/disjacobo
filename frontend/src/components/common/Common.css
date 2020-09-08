@@ -1,0 +1,50 @@
+.jumbotron {
+  background-image: url('/static/frontend/img/galleta1.jpg');
+  background-repeat: no-repeat;
+  background-size: cover;
+  padding-top: 15%;
+}
+
+.carousel h3 {
+  font-weight: bold;
+  color: black;
+  font-size: 250%;
+  text-shadow: 0 0 5px #fff;
+}
+
+.carousel p {
+    font-weight: bold;
+    text-shadow: 0 0 2.5px;
+}
+
+.carousel .btn {
+  height: 50px;
+  font-size: 20px;
+  padding: 10px 13px;
+  color: white !important;
+  font-weight: bold;
+  background-color: rgb(120, 74, 71, 0.8);
+  border-color: #400808;
+}
+
+.carousel .btn:hover {
+  background-color: rgb(120, 74, 71);
+  box-shadow: black;
+}
+
+.carousel a {
+  color: white;
+}
+
+.carousel img {
+  object-fit: cover;
+}
+
+@media only screen and (min-width: 575px) {
+}
+
+@media only screen and (max-width: 575px) {
+  .carousel h3 {
+    font-size: 200%;
+  }
+}
