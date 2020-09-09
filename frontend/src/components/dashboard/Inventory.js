@@ -1,6 +1,16 @@
 import React, { Component } from 'react';
 
-import { Container, Form, Row, Col, Button, Card, OverlayTrigger, Tooltip } from 'react-bootstrap';
+import {
+  Container,
+  Form,
+  Row,
+  Col,
+  Button,
+  Card,
+  OverlayTrigger,
+  Tooltip,
+  Accordion,
+} from 'react-bootstrap';
 import Autocomplete from '@material-ui/lab/Autocomplete';
 import CurrencyFormat from 'react-currency-format';
 import TextField from '@material-ui/core/TextField';
@@ -9,12 +19,7 @@ import {
   addProduct,
   getProducts,
   resetProducts,
-  addMetaproduct,
-  getMetaproducts,
-  resetMetaproducts,
   getCategories,
-  getTrademarks,
-  getPresentations,
   updateProduct,
 } from '../../actions/product';
 import { connect } from 'react-redux';
@@ -27,38 +32,21 @@ export class Inventory extends Component {
   state = {
     ref: '',
     name: '',
-    stock: 0,
-    price_sale: 0,
-    price_cost: 0,
-    atomic: false,
     category: {},
-    trademark: {},
+    price_cost: 0,
+    price_sale: 0,
     amount: 0,
-    payment: 0,
-    product: {},
-    metaproduct: {},
-  };
-
-  onAddMetaproduct = () => {
-    const { name, category, trademark } = this.state;
-    const data = {
-      name: name,
-      category: category.id,
-      trademark: trademark.id,
-    };
-    this.props.addMetaproduct(data);
   };
 
   onAddProduct = () => {
-    const { ref, metaproduct, presentation, stock, price_sale, price_cost, atomic } = this.state;
+    const { ref, name, category, price_cost, price_sale, amount } = this.state;
     const data = {
       ref: ref,
-      metaproduct: metaproduct.id,
-      presentation: presentation.id,
-      stock: stock,
+      name: name,
+      category: category.id,
       price_sale: price_sale,
       price_cost: price_cost,
-      is_atomic: atomic,
+      amount: amount,
     };
     this.props.addProduct(data);
   };
@@ -88,32 +76,29 @@ export class Inventory extends Component {
 
   componentDidMount() {
     this.props.getCategories();
-    this.props.getTrademarks();
-    this.props.getPresentations();
-    this.props.getMetaproducts();
     this.props.getProducts(1);
   }
 
   componentWillUnmount() {
-    this.props.resetMetaproducts();
     this.props.resetProducts();
   }
 
   render() {
-    const { name, ref, stock, price_sale, price_cost, atomic } = this.state;
-    const { categories, trademarks, presentations, products, metaproducts } = this.props;
+    const { ref, name, price_cost, price_sale, amount } = this.state;
+    const { products, categories } = this.props;
     const handleFocus = (event) => event.target.select();
     const columns = [
       {
         Header: 'Ref',
         accessor: 'ref',
         width: 100,
+        minWidth: 50,
       },
       {
-        id: 'name',
         Header: 'Nombre',
-        accessor: (d) => d.metaproduct.name + ' ' + d.presentation.name,
-        width: 300,
+        accessor: 'name',
+        width: 200,
+        minWidth: 50,
       },
       {
         Header: 'Stock',
@@ -121,8 +106,8 @@ export class Inventory extends Component {
         width: 100,
       },
       {
-        Header: 'Precio venta',
-        accessor: 'price_sale',
+        Header: 'Precio costo',
+        accessor: 'price_cost',
         Cell: (props) => (
           <CurrencyFormat
             value={props.value}
@@ -133,8 +118,8 @@ export class Inventory extends Component {
         ),
       },
       {
-        Header: 'Precio costo',
-        accessor: 'price_cost',
+        Header: 'Precio venta',
+        accessor: 'price_sale',
         Cell: (props) => (
           <CurrencyFormat
             value={props.value}
@@ -156,7 +141,7 @@ export class Inventory extends Component {
                 <Button
                   className='ml-1 break'
                   variant='outline-dark'
-                  disabled={props.original.is_atomic ? true : false}
+                  disabled={props.original.amount < 2 ? true : false}
                   onClick={() => {
                     this.onBreakProduct(props.original);
                   }}></Button>
@@ -180,242 +165,130 @@ export class Inventory extends Component {
     ];
     return (
       <Container>
-        <Card className='mt-5 mb-3'>
-          <Card.Header>Registrar producto</Card.Header>
-          <Card.Body>
-            <Form>
-              <Row>
-                <Col md={3} lg={4}>
-                  <Form.Group>
-                    <Form.Label>Nombre</Form.Label>
-                    <Form.Control
-                      type='text'
-                      placeholder='Ej. 12'
-                      name='name'
-                      value={name}
-                      onFocus={handleFocus}
-                      onChange={this.onChange}
-                    />
-                  </Form.Group>
-                </Col>
-                <Col md={3} lg={3}>
-                  <Form.Group>
-                    <Form.Label>Categoria</Form.Label>
-                    <Autocomplete
-                      id='combo-box-demo'
-                      options={categories}
-                      getOptionLabel={(option) => {
-                        return option.name;
-                      }}
-                      onChange={(event, value) => {
-                        this.setState({
-                          category: value,
-                        });
-                      }}
-                      style={{ width: 300 }}
-                      renderOption={(option) => (
-                        <React.Fragment>
-                          <div className='w-100'>
-                            <span>{option.name}</span>
-                          </div>
-                        </React.Fragment>
-                      )}
-                      renderInput={(params) => (
-                        <TextField
-                          {...params}
-                          label='Combo box'
-                          name='category'
-                          variant='outlined'
+        <Accordion className='mt-5 mb-3'>
+          <Card>
+            <Card.Header>
+              <Accordion.Toggle as={Card.Header} variant='link' eventKey='0'>
+                Registrar producto
+              </Accordion.Toggle>
+            </Card.Header>
+            <Accordion.Collapse eventKey='0'>
+              <Card.Body>
+                <Form>
+                  <Row>
+                    <Col md={2} lg={2}>
+                      <Form.Group>
+                        <Form.Label>Referencia</Form.Label>
+                        <Form.Control
+                          type='text'
+                          placeholder='Ej. 0001XX'
+                          name='ref'
+                          value={ref}
+                          onFocus={handleFocus}
+                          onChange={this.onChange}
                         />
-                      )}
-                    />
-                  </Form.Group>
-                </Col>
-                <Col md={3} lg={3}>
-                  <Form.Group>
-                    <Form.Label>Marca</Form.Label>
-                    <Autocomplete
-                      id='combo-box-demo'
-                      options={trademarks}
-                      getOptionLabel={(option) => {
-                        return option.name;
-                      }}
-                      onChange={(event, value) => {
-                        this.setState({
-                          trademark: value,
-                        });
-                      }}
-                      style={{ width: 300 }}
-                      renderOption={(option) => (
-                        <React.Fragment>
-                          <div className='w-100'>
-                            <span>{option.name}</span>
-                          </div>
-                        </React.Fragment>
-                      )}
-                      renderInput={(params) => (
-                        <TextField
-                          {...params}
-                          label='Combo box'
-                          name='trademark'
-                          variant='outlined'
+                      </Form.Group>
+                    </Col>
+                    <Col md={3} lg={4}>
+                      <Form.Group>
+                        <Form.Label>Nombre</Form.Label>
+                        <Form.Control
+                          type='text'
+                          placeholder='Ej. limpido patojito x150ml'
+                          name='name'
+                          value={name}
+                          onFocus={handleFocus}
+                          onChange={this.onChange}
                         />
-                      )}
-                    />
-                  </Form.Group>
-                </Col>
-                <Col md={3} lg={2} className='align-self-end'>
-                  <Form.Group>
-                    <Button className='w-100' variant='secondary' onClick={this.onAddMetaproduct}>
-                      +
-                    </Button>
-                  </Form.Group>
-                </Col>
-              </Row>
-            </Form>
-            <hr />
-            <Form>
-              <Row>
-                <Col md={3} lg={4}>
-                  <Form.Group>
-                    <Form.Label>Referencia</Form.Label>
-                    <Form.Control
-                      type='text'
-                      placeholder='Ej. 12'
-                      name='ref'
-                      value={ref}
-                      onFocus={handleFocus}
-                      onChange={this.onChange}
-                    />
-                  </Form.Group>
-                </Col>
-                <Col md={3} lg={4}>
-                  <Form.Group>
-                    <Form.Label>Metaproducto</Form.Label>
-                    <Autocomplete
-                      id='combo-box-demo'
-                      options={metaproducts}
-                      getOptionLabel={(option) => {
-                        return option.name;
-                      }}
-                      onChange={(event, value) => {
-                        this.setState({
-                          metaproduct: value,
-                        });
-                      }}
-                      style={{ width: 300 }}
-                      renderOption={(option) => (
-                        <React.Fragment>
-                          <div className='w-100'>
-                            <span>{option.name}</span>
-                          </div>
-                        </React.Fragment>
-                      )}
-                      renderInput={(params) => (
-                        <TextField
-                          {...params}
-                          label='Combo box'
-                          name='metaproduct'
-                          variant='outlined'
+                      </Form.Group>
+                    </Col>
+                    <Col md={3} lg={3}>
+                      <Form.Group>
+                        <Form.Label>Categoria</Form.Label>
+                        <Autocomplete
+                          id='combo-box-category'
+                          options={categories}
+                          getOptionLabel={(option) => {
+                            return option.name;
+                          }}
+                          onChange={(event, value) => {
+                            this.setState({
+                              category: value,
+                            });
+                          }}
+                          style={{ width: 300 }}
+                          renderOption={(option) => (
+                            <React.Fragment>
+                              <div className='w-100'>
+                                <span>{option.name}</span>
+                              </div>
+                            </React.Fragment>
+                          )}
+                          renderInput={(params) => (
+                            <TextField
+                              {...params}
+                              label='Combo box'
+                              name='category'
+                              variant='outlined'
+                            />
+                          )}
                         />
-                      )}
-                    />
-                  </Form.Group>
-                </Col>
-                <Col md={3} lg={4}>
-                  <Form.Group>
-                    <Form.Label>Presentacion</Form.Label>
-                    <Autocomplete
-                      id='combo-box-demo'
-                      options={presentations}
-                      getOptionLabel={(option) => {
-                        return option.name;
-                      }}
-                      onChange={(event, value) => {
-                        this.setState({
-                          presentation: value,
-                        });
-                      }}
-                      style={{ width: 300 }}
-                      renderOption={(option) => (
-                        <React.Fragment>
-                          <div className='w-100'>
-                            <span>{option.name}</span>
-                          </div>
-                        </React.Fragment>
-                      )}
-                      renderInput={(params) => (
-                        <TextField
-                          {...params}
-                          label='Combo box'
-                          name='presentation'
-                          variant='outlined'
+                      </Form.Group>
+                    </Col>
+                  </Row>
+                  <Row>
+                    <Col md={2} lg={2}>
+                      <Form.Group>
+                        <Form.Label>Precio costo</Form.Label>
+                        <Form.Control
+                          type='number'
+                          placeholder='Ej. 2000'
+                          name='price_cost'
+                          value={price_cost}
+                          onFocus={handleFocus}
+                          onChange={this.onChange}
                         />
-                      )}
-                    />
-                  </Form.Group>
-                </Col>
-                <Col md={3} lg={2}>
-                  <Form.Group>
-                    <Form.Label>Stock</Form.Label>
-                    <Form.Control
-                      type='number'
-                      placeholder='Ej. 2000'
-                      name='stock'
-                      value={stock}
-                      onFocus={handleFocus}
-                      onChange={this.onChange}
-                    />
-                  </Form.Group>
-                </Col>
-                <Col md={3} lg={3}>
-                  <Form.Group>
-                    <Form.Label>Precio venta</Form.Label>
-                    <Form.Control
-                      type='number'
-                      placeholder='Ej. 2000'
-                      name='price_sale'
-                      value={price_sale}
-                      onFocus={handleFocus}
-                      onChange={this.onChange}
-                    />
-                  </Form.Group>
-                </Col>
-                <Col md={3} lg={3}>
-                  <Form.Group>
-                    <Form.Label>Precio costo</Form.Label>
-                    <Form.Control
-                      type='number'
-                      placeholder='Ej. 2000'
-                      name='price_cost'
-                      value={price_cost}
-                      onFocus={handleFocus}
-                      onChange={this.onChange}
-                    />
-                  </Form.Group>
-                </Col>
-                <Col md={1} lg={1}>
-                  <Form.Group>
-                    <Form.Label>Atomico</Form.Label>
-                    <Form.Control
-                      type='checkbox'
-                      name='atomic'
-                      checked={atomic}
-                      onChange={this.onChange}
-                    />
-                  </Form.Group>
-                </Col>
-                <Col md={3} lg={2} className='align-self-end'>
-                  <Form.Group>
-                    <Button className='w-100' onClick={this.onAddProduct}>
-                      +
-                    </Button>
-                  </Form.Group>
-                </Col>
-              </Row>
-            </Form>
-          </Card.Body>
-        </Card>
+                      </Form.Group>
+                    </Col>
+                    <Col md={2} lg={2}>
+                      <Form.Group>
+                        <Form.Label>Precio venta</Form.Label>
+                        <Form.Control
+                          type='number'
+                          placeholder='Ej. 2000'
+                          name='price_sale'
+                          value={price_sale}
+                          onFocus={handleFocus}
+                          onChange={this.onChange}
+                        />
+                      </Form.Group>
+                    </Col>
+                    <Col md={2} lg={2}>
+                      <Form.Group>
+                        <Form.Label>Monto</Form.Label>
+                        <Form.Control
+                          type='number'
+                          placeholder='Ej. 10'
+                          name='amount'
+                          value={amount}
+                          onFocus={handleFocus}
+                          onChange={this.onChange}
+                        />
+                      </Form.Group>
+                    </Col>
+                    <Col md={1} lg={1} className='align-self-end'>
+                      <Form.Group>
+                        <Button className='w-100' onClick={this.onAddProduct}>
+                          +
+                        </Button>
+                      </Form.Group>
+                    </Col>
+                  </Row>
+                </Form>
+              </Card.Body>
+            </Accordion.Collapse>
+          </Card>
+        </Accordion>
         <span className='h5'>Lista de productos</span>
         <ReactTable
           className='mt-3 mb-2'
@@ -434,22 +307,14 @@ export class Inventory extends Component {
 }
 
 const mapStateToProps = (state) => ({
-  categories: state.product.categories,
-  trademarks: state.product.trademarks,
-  presentations: state.product.presentations,
-  metaproducts: state.product.metaproducts,
   products: state.product.products,
+  categories: state.product.categories,
 });
 
 export default connect(mapStateToProps, {
-  addMetaproduct,
-  getMetaproducts,
-  resetMetaproducts,
   addProduct,
   getProducts,
   resetProducts,
   getCategories,
-  getTrademarks,
-  getPresentations,
   updateProduct,
 })(Inventory);

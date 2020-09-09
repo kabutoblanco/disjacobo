@@ -26,25 +26,25 @@ export class BuyList extends Component {
   render() {
     const { buys } = this.props;
     const total = buys.reduce(function (a, b) {
-      return a + b.total;
+      return a + b.invoice.total;
     }, 0);
     const columns = [
       {
         Header: 'REF',
         accessor: 'ref',
-        width: 180,
+        width: 100,
       },
       {
         id: 'name',
         Header: 'Proveedor',
-        accessor: (d) => (d.user !== null ? d.user.username : 'N/A'),
-        width: 300,
+        accessor: (d) => (d.invoice.user !== null ? d.invoice.user.username : 'N/A'),
+        width: 150,
       },
       {
         Header: 'Fecha',
         accesor: 'date_record',
         Cell: (props) => (
-          <span>{moment(props.original.date_record).format('YYYY-MM-DD hh:mm A')}</span>
+          <span>{moment(props.original.invoice.date_record).format('YYYY-MM-DD hh:mm A')}</span>
         ),
       },
       {
@@ -52,7 +52,7 @@ export class BuyList extends Component {
         accessor: 'total',
         Cell: (props) => (
           <CurrencyFormat
-            value={props.value}
+            value={props.original.invoice.total}
             displayType={'text'}
             thousandSeparator={true}
             prefix={'$'}

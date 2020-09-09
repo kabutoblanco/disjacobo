@@ -17,7 +17,7 @@ export const addSale = (data) => (dispatch) => {
     .then((res) => {
       dispatch({
         type: ADD_SALE,
-        payload: res.data,
+        payload: res.data.sale,
       });
       dispatch({ type: ACTION_END });
       dispatch(createMessage({ addSale: 'Factura de venta registrada' }));
@@ -52,7 +52,7 @@ export const addBuy = (data) => (dispatch) => {
     .then((res) => {
       dispatch({
         type: ADD_BUY,
-        payload: res.data,
+        payload: res.data.buy,
       });
       dispatch({ type: ACTION_END });
       dispatch(createMessage({ addSale: 'Factura de compra registrada' }));

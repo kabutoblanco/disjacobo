@@ -16,43 +16,6 @@ import {
 } from './types';
 import { createMessage, returnErrors } from './messages';
 
-export const addMetaproduct = (data) => (dispatch) => {
-  dispatch({ type: ACTION_RUNNING });
-  axios
-    .post(`/api/metaproduct/add`, data)
-    .then((res) => {
-      dispatch({
-        type: ADD_METAPRODUCT,
-        payload: res.data.metaproduct,
-      });
-      dispatch({ type: ACTION_END });
-      dispatch(createMessage({ addSale: 'Metaproducto registrado' }));
-    })
-    .catch((err) => {
-      dispatch(returnErrors(err.response.data, err.response.status));
-      dispatch({ type: ACTION_END });
-    });
-};
-
-export const getMetaproducts = () => (dispatch) => {
-  axios
-    .get(`/api/metaproduct`)
-    .then((res) => {
-      dispatch({
-        type: GET_METAPRODUCTS,
-        payload: res.data.metaproducts,
-      });
-    })
-    .catch((err) => console.log(err));
-};
-
-export const resetMetaproducts = () => (dispatch) => {
-  dispatch({
-    type: RESET_METAPRODUCTS,
-    payload: [],
-  });
-};
-
 export const addProduct = (data) => (dispatch) => {
   dispatch({ type: ACTION_RUNNING });
   axios
@@ -115,30 +78,6 @@ export const getCategories = () => (dispatch) => {
       dispatch({
         type: GET_CATEGORIES,
         payload: res.data.categories,
-      });
-    })
-    .catch((err) => console.log(err));
-};
-
-export const getTrademarks = () => (dispatch) => {
-  axios
-    .get(`/api/trademark`)
-    .then((res) => {
-      dispatch({
-        type: GET_TRADEMARKS,
-        payload: res.data.trademarks,
-      });
-    })
-    .catch((err) => console.log(err));
-};
-
-export const getPresentations = () => (dispatch) => {
-  axios
-    .get(`/api/presentation`)
-    .then((res) => {
-      dispatch({
-        type: GET_PRESENTATIONS,
-        payload: res.data.presentations,
       });
     })
     .catch((err) => console.log(err));

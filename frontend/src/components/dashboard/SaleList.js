@@ -26,25 +26,25 @@ export class SaleList extends Component {
   render() {
     const { sales } = this.props;
     const total = sales.reduce(function (a, b) {
-      return a + b.total;
+      return a + b.invoice.total;
     }, 0);
     const columns = [
       {
         Header: 'REF',
         accessor: 'ref',
-        width: 180,
+        width: 100,
       },
       {
         id: 'name',
         Header: 'Cliente',
-        accessor: (d) => (d.user !== null ? d.user.username : 'N/A'),
-        width: 300,
+        accessor: (d) => (d.invoice.user !== null ? d.invoice.user.username : 'N/A'),
+        width: 150,
       },
       {
         Header: 'Fecha',
         accesor: 'date_record',
         Cell: (props) => (
-          <span>{moment(props.original.date_record).format('YYYY-MM-DD hh:mm A')}</span>
+          <span>{moment(props.original.invoice.date_record).format('YYYY-MM-DD hh:mm A')}</span>
         ),
       },
       {
@@ -52,7 +52,7 @@ export class SaleList extends Component {
         accessor: 'total',
         Cell: (props) => (
           <CurrencyFormat
-            value={props.value}
+            value={props.original.invoice.total}
             displayType={'text'}
             thousandSeparator={true}
             prefix={'$'}
@@ -64,7 +64,7 @@ export class SaleList extends Component {
       <Container className='pt-4'>
         <div className='w-100'>
           <span className='h5'>
-            Compras del día:{'  '}
+            Ventas del día:{'  '}
             <CurrencyFormat
               value={total}
               displayType={'text'}

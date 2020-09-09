@@ -1,15 +1,6 @@
 import React, { Component } from 'react';
 
-import {
-  Container,
-  Form,
-  Row,
-  Col,
-  Button,
-  Card,
-  OverlayTrigger,
-  Tooltip,
-} from 'react-bootstrap';
+import { Container, Form, Row, Col, Button, Card, OverlayTrigger, Tooltip } from 'react-bootstrap';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import Autocomplete from '@material-ui/lab/Autocomplete';
@@ -48,7 +39,7 @@ export class BuyDetail extends Component {
       amount: parseInt(amount),
       total: parseFloat(total),
       ref: product.ref,
-      name: product.metaproduct.name + ' ' + product.presentation.name,
+      name: product.name,
       is_iva: is_iva,
       is_promo: is_promo,
     };
@@ -63,27 +54,29 @@ export class BuyDetail extends Component {
 
   onAddBuy = () => {
     const { details } = this.state;
-    const { provider, ref, date_record, date_update, payment } = this.state;
-    const pay = details.reduce(function (a, b) {
+    const { provider, ref, date_record, date_update } = this.state;
+    const payment = details.reduce(function (a, b) {
       return a + b.total;
     }, 0);
     let user = null;
     if (provider !== null) user = provider.user.id;
-    const buy = {
+    const invoice = {
       user: user,
-      total: pay,
-      ref: ref,
-      date_record: moment(date_record).format('YYYY-MM-DD' + 'T' + 'HH:mm:SS'),
-      date_update: moment(date_update).format('YYYY-MM-DD' + 'T' + 'HH:mm:SS'),
+      total: payment,
+      date_record: moment(date_record).format('YYYY-MM-DD' + 'T' + 'HH:mm'),
+      date_update: moment(date_update).format('YYYY-MM-DD' + 'T' + 'HH:mm'),
     };
     const payments = [
       {
         ref: new Date().toLocaleString(),
-        payment: pay,
+        payment: payment,
       },
     ];
     const data = {
-      buy: buy,
+      invoice: invoice,
+      buy: {
+        ref: ref,
+      },
       details: details,
       payments: payments,
     };
@@ -101,10 +94,7 @@ export class BuyDetail extends Component {
 
   onChange = (event) => {
     let { name } = event.target;
-    let value =
-      event.target.type === 'checkbox'
-        ? event.target.checked
-        : event.target.value;
+    let value = event.target.type === 'checkbox' ? event.target.checked : event.target.value;
     const { product } = this.state;
     if (value === '') value = 0;
     this.setState(
@@ -147,7 +137,18 @@ export class BuyDetail extends Component {
         width: 60,
       },
       { Header: 'Cantidad', accessor: 'amount' },
-      { Header: 'Valor', accessor: 'total' },
+      {
+        Header: 'Valor',
+        accessor: 'total',
+        Cell: (props) => (
+          <CurrencyFormat
+            value={props.value}
+            displayType={'text'}
+            thousandSeparator={true}
+            prefix={'$'}
+          />
+        ),
+      },
       {
         Header: 'Acciones',
         Cell: (props) => {
@@ -253,22 +254,17 @@ export class BuyDetail extends Component {
                   </Form.Group>
                 </Col>
               </Row>
+              <hr />
               <Row>
                 <Col md={4} lg={4}>
                   <Form.Group>
                     <Form.Label>Producto</Form.Label>
                     <Autocomplete
-                      id='combo-box-products'
+                      id='combo-box-demo'
                       options={products}
                       getOptionLabel={(option) => {
-                        return (
-                          option.metaproduct.name +
-                          ' ' +
-                          option.presentation.name
-                        );
+                        return option.name;
                       }}
-                      disableClearable
-                      disablePortal
                       onChange={(event, value) => {
                         this.setState({
                           product: value,
@@ -279,10 +275,7 @@ export class BuyDetail extends Component {
                       renderOption={(option) => (
                         <React.Fragment>
                           <div className='w-100'>
-                            <span>
-                              {option.metaproduct.name}{' '}
-                              {option.presentation.name}
-                            </span>
+                            <span>{option.name}</span>
                           </div>
                         </React.Fragment>
                       )}

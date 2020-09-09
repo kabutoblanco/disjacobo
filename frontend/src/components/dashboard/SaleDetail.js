@@ -1,15 +1,6 @@
 import React, { Component } from 'react';
 
-import {
-  Container,
-  Form,
-  Row,
-  Col,
-  Button,
-  Card,
-  OverlayTrigger,
-  Tooltip,
-} from 'react-bootstrap';
+import { Container, Form, Row, Col, Button, Card, OverlayTrigger, Tooltip } from 'react-bootstrap';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import Autocomplete from '@material-ui/lab/Autocomplete';
@@ -46,7 +37,7 @@ export class SaleDetail extends Component {
       amount: parseInt(amount),
       total: parseFloat(total),
       ref: product.ref,
-      name: product.metaproduct.name + ' ' + product.presentation.name,
+      name: product.name,
       is_iva: is_iva,
       is_promo: is_promo,
     };
@@ -62,26 +53,28 @@ export class SaleDetail extends Component {
   onAddSale = () => {
     const { details } = this.state;
     const { client, ref, date_record, date_update } = this.state;
-    const pay = details.reduce(function (a, b) {
+    const payment = details.reduce(function (a, b) {
       return a + b.total;
     }, 0);
     let user = null;
-    if (client !== null) user = client.user.id;
-    const sale = {
+    if (client !== null) user = client.id;
+    const invoice = {
       user: user,
-      total: pay,
-      ref: ref,
-      date_record: moment(date_record).format('YYYY-MM-DD' + 'T' + 'HH:mm:SS'),
-      date_update: moment(date_update).format('YYYY-MM-DD' + 'T' + 'HH:mm:SS'),
+      total: payment,
+      date_record: moment(date_record).format('YYYY-MM-DD' + 'T' + 'HH:mm'),
+      date_update: moment(date_update).format('YYYY-MM-DD' + 'T' + 'HH:mm'),
     };
     const payments = [
       {
         ref: new Date().toLocaleString(),
-        payment: pay,
+        payment: payment,
       },
     ];
     const data = {
-      sale: sale,
+      invoice: invoice,
+      sale: {
+        ref: ref,
+      },
       details: details,
       payments: payments,
     };
@@ -99,10 +92,7 @@ export class SaleDetail extends Component {
 
   onChange = (event) => {
     let { name } = event.target;
-    let value =
-      event.target.type === 'checkbox'
-        ? event.target.checked
-        : event.target.value;
+    let value = event.target.type === 'checkbox' ? event.target.checked : event.target.value;
     const { product } = this.state;
     if (value === '') value = 0;
     this.setState(
@@ -145,7 +135,18 @@ export class SaleDetail extends Component {
         width: 60,
       },
       { Header: 'Cantidad', accessor: 'amount' },
-      { Header: 'Valor', accessor: 'total' },
+      {
+        Header: 'Valor',
+        accessor: 'total',
+        Cell: (props) => (
+          <CurrencyFormat
+            value={props.value}
+            displayType={'text'}
+            thousandSeparator={true}
+            prefix={'$'}
+          />
+        ),
+      },
       {
         Header: 'Acciones',
         Cell: (props) => {
@@ -211,12 +212,7 @@ export class SaleDetail extends Component {
                         </React.Fragment>
                       )}
                       renderInput={(params) => (
-                        <TextField
-                          {...params}
-                          label='Combo box'
-                          name='client'
-                          variant='outlined'
-                        />
+                        <TextField {...params} label='Combo box' name='client' variant='outlined' />
                       )}
                     />
                   </Form.Group>
@@ -249,6 +245,7 @@ export class SaleDetail extends Component {
                   </Form.Group>
                 </Col>
               </Row>
+              <hr />
               <Row>
                 <Col md={4} lg={4}>
                   <Form.Group>
@@ -257,26 +254,19 @@ export class SaleDetail extends Component {
                       id='combo-box-demo'
                       options={products}
                       getOptionLabel={(option) => {
-                        return (
-                          option.metaproduct.name +
-                          ' ' +
-                          option.presentation.name
-                        );
+                        return option.name;
                       }}
                       onChange={(event, value) => {
                         this.setState({
                           product: value,
-                          total: amount * value.price_cost,
+                          total: amount * value.price_sale,
                         });
                       }}
                       style={{ width: 300 }}
                       renderOption={(option) => (
                         <React.Fragment>
                           <div className='w-100'>
-                            <span>
-                              {option.metaproduct.name}{' '}
-                              {option.presentation.name}
-                            </span>
+                            <span>{option.name}</span>
                           </div>
                         </React.Fragment>
                       )}

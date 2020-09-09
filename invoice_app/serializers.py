@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Buy, Sale, Detail, Pay, Invoice
+from .models import Buy, Sale, Detail, Payment, Invoice
 from user_app.models import User
 from product_app.serializers import ProductSerializer
 
@@ -10,20 +10,29 @@ class UserSerializer(serializers.ModelSerializer):
         model = User
         fields = ("username", )
 
-class BuySerializer(serializers.ModelSerializer):
+
+class InvoiceSerializer(serializers.ModelSerializer):
     user = UserSerializer()
+
+    class Meta:
+        model = Invoice
+        fields = ("id", "user", "total", "date_record")
+
+
+class BuySerializer(serializers.ModelSerializer):
+    invoice = InvoiceSerializer()
 
     class Meta:
         model = Buy
-        fields = ("id", "ref", "user", "total", "date_record")
+        fields = ("id", "invoice", "ref")
 
 
 class SaleSerializer(serializers.ModelSerializer):
-    user = UserSerializer()
+    invoice = InvoiceSerializer()
 
     class Meta:
         model = Sale
-        fields = ("id", "ref", "user", "total", "date_record")
+        fields = ("id", "invoice", "ref")
 
 
 class DetailSerializer(serializers.ModelSerializer):
@@ -35,6 +44,15 @@ class DetailSerializer(serializers.ModelSerializer):
 
 
 # Registers
+class RegisterInvoiceSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Invoice
+        fields = "__all__"
+
+    def create(self, validated_data):
+        return Invoice.objects.create(**validated_data)
+
+
 class RegisterSaleSerializer(serializers.ModelSerializer):
     class Meta:
         model = Sale
@@ -62,10 +80,10 @@ class RegisterDetailSerializer(serializers.ModelSerializer):
         return Detail.objects.create(**validated_data)
 
 
-class RegisterPaySerializer(serializers.ModelSerializer):
+class RegisterPaymentSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Pay
+        model = Payment
         fields = "__all__"
 
     def create(self, validated_data):
-        return Pay.objects.create(**validated_data)
+        return Payment.objects.create(**validated_data)

@@ -1,7 +1,7 @@
 from rest_framework import generics
 from rest_framework.response import Response
 from .models import Sale, Buy, Detail
-from .serializers import SaleSerializer, BuySerializer, DetailSerializer, RegisterSaleSerializer, RegisterBuySerializer, RegisterDetailSerializer, RegisterPaySerializer
+from .serializers import SaleSerializer, BuySerializer, DetailSerializer, RegisterSaleSerializer, RegisterBuySerializer, RegisterDetailSerializer, RegisterPaymentSerializer, RegisterInvoiceSerializer
 
 import json
 import pytz
@@ -19,7 +19,7 @@ class SaleListAPI(generics.RetrieveAPIView):
                 today_max = pytz.timezone('America/Bogota').localize(
                     dt.datetime.combine(dt.date.today(), dt.time.max))
             queryset = Sale.objects.filter(
-                date_record__range=(today_min, today_max))
+                invoice__date_record__range=(today_min, today_max))
         else:
             queryset = Sale.objects.all()
         return Response({"sales": SaleSerializer(queryset, many=True).data})
@@ -36,7 +36,7 @@ class BuyListAPI(generics.RetrieveAPIView):
                 today_max = pytz.timezone('America/Bogota').localize(
                     dt.datetime.combine(dt.date.today(), dt.time.max))
                 queryset = Buy.objects.filter(
-                    date_record__range=(today_min, today_max))
+                    invoice__date_record__range=(today_min, today_max))
         else:
             queryset = Buy.objects.all()
         return Response({"buys": BuySerializer(queryset, many=True).data})
@@ -50,11 +50,12 @@ class DetailListAPI(generics.RetrieveAPIView):
         return Response({"details": DetailSerializer(queryset, many=True).data})
 
 
-class RegisterSaleAPI(generics.RetrieveAPIView):
-    serializer_class = RegisterSaleSerializer
+class RegisterSaleAPI(generics.GenericAPIView):
+    serializer_class = RegisterInvoiceSerializer
 
     def post(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data["sale"])
+        print(request.data["invoice"])
+        serializer = self.get_serializer(data=request.data["invoice"])
         serializer.is_valid(raise_exception=True)
         sale = serializer.save()
         sale.record_details({
@@ -64,21 +65,23 @@ class RegisterSaleAPI(generics.RetrieveAPIView):
         })
         sale.record_payments({
             "payments": request.data["payments"],
-            "serializer": RegisterPaySerializer,
+            "serializer": RegisterPaymentSerializer,
             "is_sale": True
         })
-        return Response({
-            "sale": SaleSerializer(
-                sale, context=self.get_serializer_context()).data,
+        sale = sale.record_sale({
+            "sale": request.data["sale"],
+            "serializer": RegisterSaleSerializer
         })
+        return Response({"sale": SaleSerializer(sale).data, })
 
 
-class RegisterBuyAPI(generics.RetrieveAPIView):
-    serializer_class = RegisterBuySerializer
+class RegisterBuyAPI(generics.GenericAPIView):
+    serializer_class = RegisterInvoiceSerializer
 
     def post(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data["buy"])
-        serializer.is_valid(raise_exception=True)
+        print(request.data["invoice"])
+        serializer = self.get_serializer(data=request.data["invoice"])
+        serializer.is_valid(raise_exception=False)
         buy = serializer.save()
         buy.record_details({
             "details": request.data["details"],
@@ -87,11 +90,11 @@ class RegisterBuyAPI(generics.RetrieveAPIView):
         })
         buy.record_payments({
             "payments": request.data["payments"],
-            "serializer": RegisterPaySerializer,
+            "serializer": RegisterPaymentSerializer,
             "is_sale": False
         })
-        return Response({
-            "buy":
-            BuySerializer(
-                buy, context=self.get_serializer_context()).data,
+        buy = buy.record_buy({
+            "buy": request.data["buy"],
+            "serializer": RegisterBuySerializer
         })
+        return Response({"buy": BuySerializer(buy).data, })

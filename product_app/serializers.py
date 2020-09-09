@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Metaproduct, Product, Presentation, Category, Trademark
+from .models import Product, Category
 
 
 # Serializers
@@ -9,43 +9,14 @@ class CategorySerializer(serializers.ModelSerializer):
         fields = ("id", "name")
 
 
-class TrademarkSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Trademark
-        fields = ("id", "name")
-
-class PresentationSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Presentation
-        fields = ("id", "name", "amount")
-
-
-class MetaproductSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Metaproduct
-        fields = ("id", "name", "description")
-
-
 class ProductSerializer(serializers.ModelSerializer):
-    metaproduct = MetaproductSerializer()
-    presentation = PresentationSerializer()
-
     class Meta:
         model = Product
-        fields = ("id", "ref", "metaproduct", "presentation", "stock",
-                  "capacity", "price_cost", "price_sale", "is_atomic")
+        fields = ("id", "ref", "name", "stock", "amount",
+                  "capacity", "price_cost", "price_sale")
 
 
 # Registers
-class RegisterMetaproductSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Metaproduct
-        fields = "__all__"
-
-    def create(self, validated_data):
-        return Metaproduct.objects.create(**validated_data)
-
-
 class RegisterProductSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
@@ -66,14 +37,3 @@ class UpdateProductSerializer(serializers.ModelSerializer):
         instance.price_sale = validated_data["price_sale"]
         instance.save()
         return instance
-
-
-class RegisterPresentationSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Presentation
-        fields = "__all__"
-
-    def create(self, validated_data):
-        presentation = Presentation.objects.create(validated_data)
-        presentation.save()
-        return presentation
