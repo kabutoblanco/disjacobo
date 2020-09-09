@@ -63,12 +63,15 @@ export class BuyDetail extends Component {
 
   onAddBuy = () => {
     const { details } = this.state;
-    const { provider, total, ref, date_record, date_update } = this.state;
+    const { provider, ref, date_record, date_update, payment } = this.state;
+    const payment = details.reduce(function (a, b) {
+      return a + b.total;
+    }, 0);
     let user = null;
     if (provider !== null) user = provider.user.id;
     const buy = {
       user: user,
-      total: total,
+      total: payment,
       ref: ref,
       date_record: moment(date_record).format('YYYY-MM-DD' + 'T' + 'HH:mm:SS'),
       date_update: moment(date_update).format('YYYY-MM-DD' + 'T' + 'HH:mm:SS'),
@@ -76,7 +79,7 @@ export class BuyDetail extends Component {
     const payments = [
       {
         ref: new Date().toLocaleString(),
-        payment: total,
+        payment: payment,
       },
     ];
     const data = {

@@ -61,12 +61,15 @@ export class SaleDetail extends Component {
 
   onAddSale = () => {
     const { details } = this.state;
-    const { client, total, ref, date_record, date_update } = this.state;
+    const { client, ref, date_record, date_update } = this.state;
+    const payment = details.reduce(function (a, b) {
+      return a + b.total;
+    }, 0);
     let user = null;
     if (client !== null) user = client.user.id;
     const sale = {
       user: user,
-      total: total,
+      total: payment,
       ref: ref,
       date_record: moment(date_record).format('YYYY-MM-DD' + 'T' + 'HH:mm:SS'),
       date_update: moment(date_update).format('YYYY-MM-DD' + 'T' + 'HH:mm:SS'),
@@ -74,7 +77,7 @@ export class SaleDetail extends Component {
     const payments = [
       {
         ref: new Date().toLocaleString(),
-        payment: total,
+        payment: payment,
       },
     ];
     const data = {
