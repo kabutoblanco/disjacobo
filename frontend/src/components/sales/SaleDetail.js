@@ -13,14 +13,14 @@ import { getClients } from '../../actions/auth';
 import { connect } from 'react-redux';
 var moment = require('moment');
 
-import './index.css';
+import '../dashboard/index.css';
 
 export class SaleDetail extends Component {
   state = {
     date_record: new Date(),
     date_update: new Date(),
     client: null,
-    ref: '',
+    ref: moment(new Date()).format('FVYYMMDDHHmmss'),
     amount: 0,
     total: 0,
     discount: 0,
@@ -38,7 +38,9 @@ export class SaleDetail extends Component {
       total: parseFloat(total),
       ref: product.ref,
       name: product.name,
-      is_iva: is_iva,
+      util: is_iva ? 0.0 : parseFloat(total) - product.price_cost * parseFloat(amount),
+      is_sale: true,
+      is_consumption: is_iva,
       is_promo: is_promo,
     };
     this.setState({ details: this.state.details.concat(data) });
@@ -56,8 +58,11 @@ export class SaleDetail extends Component {
     const payment = details.reduce(function (a, b) {
       return a + b.total;
     }, 0);
+    const util = details.reduce(function (a, b) {
+      return a + b.util;
+    }, 0);
     let user = null;
-    if (client !== null) user = client.id;
+    if (client !== null) user = client.user.id;
     const invoice = {
       user: user,
       total: payment,
@@ -67,13 +72,14 @@ export class SaleDetail extends Component {
     const payments = [
       {
         ref: new Date().toLocaleString(),
-        payment: payment,
+        total: payment,
       },
     ];
     const data = {
       invoice: invoice,
       sale: {
         ref: ref,
+        util: parseFloat(util),
       },
       details: details,
       payments: payments,
@@ -83,7 +89,7 @@ export class SaleDetail extends Component {
 
   componentDidMount() {
     this.props.getClients();
-    this.props.getProducts(1);
+    this.props.getProducts(0);
   }
 
   componentWillUnmount() {
@@ -197,6 +203,7 @@ export class SaleDetail extends Component {
                         return option.user.personal_id;
                       }}
                       onChange={(event, value) => {
+                        console.log(value);
                         this.setState({
                           client: value,
                         });
@@ -217,7 +224,7 @@ export class SaleDetail extends Component {
                     />
                   </Form.Group>
                 </Col>
-                <Col md={4} lg={4}>
+                <Col xs={6} md={4} lg={4}>
                   <Form.Group>
                     <Form.Label>No. Factura</Form.Label>
                     <Form.Control
@@ -229,7 +236,7 @@ export class SaleDetail extends Component {
                     />
                   </Form.Group>
                 </Col>
-                <Col md={4} lg={4}>
+                <Col xs={6} md={4} lg={4}>
                   <Form.Group>
                     <Form.Label>Fecha</Form.Label>
                     <DatePicker
@@ -281,7 +288,7 @@ export class SaleDetail extends Component {
                     />
                   </Form.Group>
                 </Col>
-                <Col md={2} lg={2}>
+                <Col xs={5} md={2} lg={2}>
                   <Form.Group>
                     <Form.Label>Cantidad</Form.Label>
                     <Form.Control
@@ -294,7 +301,7 @@ export class SaleDetail extends Component {
                     />
                   </Form.Group>
                 </Col>
-                <Col md={2} lg={2}>
+                <Col xs={7} md={2} lg={2}>
                   <Form.Group>
                     <Form.Label>Valor</Form.Label>
                     <Form.Control
@@ -307,9 +314,9 @@ export class SaleDetail extends Component {
                     />
                   </Form.Group>
                 </Col>
-                <Col md={1} lg={1}>
+                <Col xs={6} md={1} lg={1}>
                   <Form.Group>
-                    <Form.Label>IVA</Form.Label>
+                    <Form.Label>¿Gasto?</Form.Label>
                     <Form.Control
                       type='checkbox'
                       name='is_iva'
@@ -318,9 +325,9 @@ export class SaleDetail extends Component {
                     />
                   </Form.Group>
                 </Col>
-                <Col md={1} lg={1}>
+                <Col xs={6} md={1} lg={1}>
                   <Form.Group>
-                    <Form.Label>Promocion</Form.Label>
+                    <Form.Label>¿Promo?</Form.Label>
                     <Form.Control
                       type='checkbox'
                       name='is_promo'

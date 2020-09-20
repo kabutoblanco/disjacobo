@@ -1,5 +1,5 @@
 from django.urls import path, include
-from .api import SaleListAPI, BuyListAPI, DetailListAPI, RegisterSaleAPI, RegisterBuyAPI
+from .api import SaleListAPI, BuyListAPI, DetailListAPI, RegisterSaleAPI, RegisterBuyAPI, UploadBuysAPI
 
 urlpatterns = [
     path('api/sale', SaleListAPI.as_view()),
@@ -9,4 +9,5 @@ urlpatterns = [
     path('api/buy/add', RegisterBuyAPI.as_view(), name='create_buy'),
     path('api/sale/<str:date>', SaleListAPI.as_view()),
     path('api/buy/<str:date>', BuyListAPI.as_view()),
+    path('api/buy/upload', UploadBuysAPI.as_view()),
 ]

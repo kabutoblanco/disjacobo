@@ -44,7 +44,7 @@ class Admin(BaseUserAdmin):
             },
         ),
     )
-    list_display = ("id", "email", "first_name", "last_name", "is_staff")
+    list_display = ("id", "username", "is_staff")
     search_fields = ("email", "first_name", "last_name")
     ordering = ("username",)
 

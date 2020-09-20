@@ -15,17 +15,21 @@ import Autocomplete from '@material-ui/lab/Autocomplete';
 import CurrencyFormat from 'react-currency-format';
 import TextField from '@material-ui/core/TextField';
 import ReactTable from 'react-table-6';
+import { ProductUpload } from '../products/ProductUpload';
+import { ProductDetail } from '../products/ProductDetail';
 import {
   addProduct,
   getProducts,
   resetProducts,
   getCategories,
   updateProduct,
+  uploadProducts,
+  getDetail,
 } from '../../actions/product';
 import { connect } from 'react-redux';
 var moment = require('moment');
 
-import './index.css';
+import '../dashboard/index.css';
 import 'react-table-6/react-table.css';
 
 export class Inventory extends Component {
@@ -36,6 +40,22 @@ export class Inventory extends Component {
     price_cost: 0,
     price_sale: 0,
     amount: 0,
+    product: null,
+    show: false,
+    showDetail: false,
+  };
+
+  onOpen = () => {
+    this.setState({ show: true });
+  };
+
+  onOpenDetail = (product) => {
+    this.props.getDetail(product.id);
+    this.setState({ product: product, showDetail: true });
+  };
+
+  onClose = () => {
+    this.setState({ show: false, showDetail: false });
   };
 
   onAddProduct = () => {
@@ -47,6 +67,7 @@ export class Inventory extends Component {
       price_sale: price_sale,
       price_cost: price_cost,
       amount: amount,
+      filter: 0,
     };
     this.props.addProduct(data);
   };
@@ -54,13 +75,13 @@ export class Inventory extends Component {
   onBreakProduct = (product) => {
     //PASAR PRODUCTOS DE UNA PRESENTACION EN PACK A LA UNITARIA
     let product_atomic = this.props.products.find(
-      (item) => item.metaproduct.id === product.metaproduct.id && item.is_atomic
+      (item) => item.ref === product.ref && item.amount === 1
     );
     product.stock -= 1;
-    product_atomic.stock += product.presentation.amount;
+    product_atomic.stock += product.amount;
 
-    var { ref, metaproduct, presentation, ...restProduct } = product;
-    var { ref, metaproduct, presentation, ...restProduct_atomic } = product_atomic;
+    var { ref, ...restProduct } = product;
+    var { ref, ...restProduct_atomic } = product_atomic;
 
     this.props.updateProduct(product.id, restProduct);
     this.props.updateProduct(product_atomic.id, restProduct_atomic);
@@ -68,15 +89,21 @@ export class Inventory extends Component {
 
   onChange = (event) => {
     let { name } = event.target;
+    console.log(event.target.value);
     let value = event.target.type === 'checkbox' ? event.target.checked : event.target.value;
-    this.setState({
-      [name]: value,
-    });
+    this.setState(
+      {
+        [name]: value,
+      },
+      () => {
+        if (name === 'filter') this.props.getProducts(value);
+      }
+    );
   };
 
   componentDidMount() {
     this.props.getCategories();
-    this.props.getProducts(1);
+    this.props.getProducts(0);
   }
 
   componentWillUnmount() {
@@ -84,26 +111,30 @@ export class Inventory extends Component {
   }
 
   render() {
-    const { ref, name, price_cost, price_sale, amount } = this.state;
+    const { ref, name, price_cost, price_sale, amount, show, showDetail } = this.state;
     const { products, categories } = this.props;
+    const comboCategories = categories.map((item) => <option value={item.id}>{item.name}</option>);
     const handleFocus = (event) => event.target.select();
     const columns = [
       {
         Header: 'Ref',
         accessor: 'ref',
-        width: 100,
-        minWidth: 50,
+        Cell: (props) => (
+          <span style={{textDecoration: 'underline blue', color: 'blue'}}
+            onClick={() => {
+              this.onOpenDetail(props.original);
+            }}>
+            {props.original.ref}
+            {props.original.id}
+          </span>
+        ),
+        width: 70,
       },
       {
         Header: 'Nombre',
         accessor: 'name',
+        filterable: true,
         width: 200,
-        minWidth: 50,
-      },
-      {
-        Header: 'Stock',
-        accessor: 'stock',
-        width: 100,
       },
       {
         Header: 'Precio costo',
@@ -116,6 +147,7 @@ export class Inventory extends Component {
             prefix={'$'}
           />
         ),
+        width: 100,
       },
       {
         Header: 'Precio venta',
@@ -128,6 +160,19 @@ export class Inventory extends Component {
             prefix={'$'}
           />
         ),
+        width: 100,
+      },
+      {
+        id: 'util',
+        Header: 'Utilidad',
+        accessor: (d) => (d.price_cost > 0 ? d.price_sale / d.price_cost - 1 : 1),
+        Cell: (props) => <span>{(props.value * 100).toFixed(0)}%</span>,
+        width: 80,
+      },
+      {
+        Header: 'Stock',
+        accessor: 'stock',
+        width: 50,
       },
       {
         Header: 'Acciones',
@@ -289,17 +334,54 @@ export class Inventory extends Component {
             </Accordion.Collapse>
           </Card>
         </Accordion>
-        <span className='h5'>Lista de productos</span>
+        <div className='d-block'>
+          <span className='h5'>Lista de productos</span>
+        </div>
+        <div className='d-inline-flex'>
+          <Form.Control
+            as='select'
+            defaultValue={0}
+            name='filter'
+            value={this.state.filter}
+            onChange={this.onChange}>
+            <option value={0}>---categoria---</option>
+            {comboCategories}
+          </Form.Control>
+          <button className='ml-1' onClick={this.onOpen}>
+            Upload
+          </button>
+        </div>
         <ReactTable
           className='mt-3 mb-2'
           data={products}
           columns={columns}
           defaultPageSize={5}
+          defaultFilterMethod={(filter, row, column) => {
+            const id = filter.pivotId || filter.id;
+            return row[id] !== undefined
+              ? String(row[id])
+                  .toLowerCase()
+                  .replace(/ /g, '')
+                  .includes(filter.value.toLowerCase().replace(/ /g, ''))
+              : true;
+          }}
           previousText='Atras'
           nextText='Siguiente'
           pageText='Página'
           ofText='de'
           rowsText='filas'
+        />
+        <ProductUpload
+          show={show}
+          onClose={this.onClose}
+          uploadProducts={this.props.uploadProducts}
+        />
+        <ProductDetail
+          show={showDetail}
+          onClose={this.onClose}
+          getDetail={this.props.getDetail}
+          product={this.state.product}
+          detail={this.props.detail}
         />
       </Container>
     );
@@ -309,6 +391,7 @@ export class Inventory extends Component {
 const mapStateToProps = (state) => ({
   products: state.product.products,
   categories: state.product.categories,
+  detail: state.product.detail,
 });
 
 export default connect(mapStateToProps, {
@@ -317,4 +400,6 @@ export default connect(mapStateToProps, {
   resetProducts,
   getCategories,
   updateProduct,
+  uploadProducts,
+  getDetail,
 })(Inventory);

@@ -47,7 +47,6 @@ class Invoice(models.Model):
     def record_payments(self, validated_data):
         payments = validated_data["payments"]
         serializer_payment = validated_data["serializer"]
-        is_sale = validated_data["is_sale"]
         for payment in payments:
             payment["invoice"] = self.id
             payment["date_record"] = self.date_record
@@ -59,21 +58,26 @@ class Invoice(models.Model):
     def record_sale(self, validated_data):
         sale = validated_data["sale"]
         sale["invoice"] = self.id
+        sale["date_record"] = self.date_record
+        sale["date_update"] = self.date_update
         serializer_sale = validated_data["serializer"]
         serializer = serializer_sale(data=sale)
+        print(sale)
         serializer.is_valid(raise_exception=True)
         return serializer.save()
 
     def record_buy(self, validated_data):
         buy = validated_data["buy"]
         buy["invoice"] = self.id
+        buy["date_record"] = self.date_record
+        buy["date_update"] = self.date_update
         serializer_buy = validated_data["serializer"]
         serializer = serializer_buy(data=buy)
         serializer.is_valid(raise_exception=True)
         return serializer.save()
 
     def __str__(self):
-        return "[{}] {}".format(self.id, self.total)
+        return "[{}] {} {}".format(self.id, self.user, self.total)
 
 
 class Detail(models.Model):
@@ -84,14 +88,17 @@ class Detail(models.Model):
     ico = models.FloatField(default=0.0)
     iva = models.FloatField(default=0.0)
     discount = models.FloatField(default=0.0)
+    util = models.FloatField(default=0.0)
     total = models.FloatField(default=0.0)
+    is_sale = models.BooleanField(default=False)
+    is_consumption = models.BooleanField(default=False)
     is_promo = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
     date_record = models.DateTimeField(auto_now=False)
     date_update = models.DateTimeField(auto_now=False)
 
     def __str__(self):
-        return "[{}] {}".format(self.id, self.invoice)
+        return "[{}] {} {}".format(self.id, self.invoice, self.product)
 
     class Meta:
         verbose_name = "Detalle"
@@ -128,15 +135,25 @@ class Sale(models.Model):
     ref = models.CharField(max_length=32, unique=True)
     invoice = models.ForeignKey(Invoice, on_delete=models.CASCADE)
     mode = models.IntegerField(choices=TYPE_CHOICES, default=1)
+    util = models.FloatField(default=0.0)
+    is_active = models.BooleanField(default=True)
+    date_record = models.DateTimeField(auto_now=False)
+    date_update = models.DateTimeField(auto_now=False)
 
     class Meta:
         verbose_name = "Venta"
         verbose_name_plural = "Ventas"
 
+    def __str__(self):
+        return "{}".format(self.invoice)
+
 
 class Buy(models.Model):
     ref = models.CharField(max_length=32, unique=True)
     invoice = models.ForeignKey(Invoice, on_delete=models.CASCADE)
+    is_active = models.BooleanField(default=True)
+    date_record = models.DateTimeField(auto_now=False)
+    date_update = models.DateTimeField(auto_now=False)
 
     class Meta:
         verbose_name = "Compra"

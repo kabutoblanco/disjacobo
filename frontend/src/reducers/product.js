@@ -5,6 +5,8 @@ import {
   GET_CATEGORIES,
   ADD_PRODUCT,
   UPDATE_PRODUCT,
+  UPLOAD_PRODUCTS,
+  GET_DETAIL_PRODUCT,
 } from '../actions/types';
 
 const initialState = {
@@ -13,10 +15,16 @@ const initialState = {
   presentations: [],
   metaproducts: [],
   products: [],
+  detail: null,
 };
 
 export default function (state = initialState, action) {
   switch (action.type) {
+    case UPLOAD_PRODUCTS:
+      return {
+        ...state,
+        products: state.products.concat(action.payload),
+      };
     case RESET_CATEGORIES:
     case GET_CATEGORIES:
       return {
@@ -42,6 +50,11 @@ export default function (state = initialState, action) {
       return {
         ...state,
         products: action.payload,
+      };
+    case GET_DETAIL_PRODUCT:
+      return {
+        ...state,
+        detail: action.payload,
       };
     default:
       return state;

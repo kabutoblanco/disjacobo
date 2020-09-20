@@ -4,6 +4,20 @@ from user_app.models import Provider
 
 
 # Create your models here.
+class Trademark(models.Model):
+    name = models.CharField(max_length=124)
+    is_active = models.BooleanField(default=True)
+    date_record = models.DateTimeField(auto_now=True)
+    date_update = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return "{}".format(self.name)
+
+    class Meta:
+        verbose_name = "Marca"
+        verbose_name_plural = "Marcas"
+
+
 class Category(models.Model):
     name = models.CharField(max_length=124)
     is_active = models.BooleanField(default=True)
@@ -19,10 +33,11 @@ class Category(models.Model):
 
 
 class Product(models.Model):
-    ref = models.CharField(max_length=12, unique=True)
+    ref = models.CharField(max_length=12)
     name = models.CharField(max_length=64)
     description = models.CharField(max_length=64, blank=True)
-    category = models.ForeignKey(Category, on_delete=models.CASCADE)
+    category = models.ForeignKey(Category, on_delete=models.CASCADE, blank=True, null=True)
+    trademark = models.ForeignKey(Trademark, on_delete=models.SET_NULL, blank=True, null=True)
     amount = models.IntegerField(default=0)
     stock = models.IntegerField(default=0)
     capacity = models.IntegerField(default=0)

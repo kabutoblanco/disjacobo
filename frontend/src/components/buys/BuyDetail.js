@@ -7,13 +7,13 @@ import Autocomplete from '@material-ui/lab/Autocomplete';
 import TextField from '@material-ui/core/TextField';
 import CurrencyFormat from 'react-currency-format';
 import ReactTable from 'react-table-6';
-import { getProducts, resetProducts } from '../../actions/product';
+import { getProducts, resetProducts, uploadProducts } from '../../actions/product';
 import { addBuy } from '../../actions/invoice';
 import { getProviders } from '../../actions/auth';
 import { connect } from 'react-redux';
 var moment = require('moment');
 
-import './index.css';
+import '../dashboard/index.css';
 
 export class BuyDetail extends Component {
   state = {
@@ -69,7 +69,7 @@ export class BuyDetail extends Component {
     const payments = [
       {
         ref: new Date().toLocaleString(),
-        payment: payment,
+        total: payment,
       },
     ];
     const data = {
@@ -85,7 +85,7 @@ export class BuyDetail extends Component {
 
   componentDidMount() {
     this.props.getProviders();
-    this.props.getProducts(1);
+    this.props.getProducts(0);
   }
 
   componentWillUnmount() {
@@ -376,4 +376,5 @@ export default connect(mapStateToProps, {
   getProducts,
   resetProducts,
   getProviders,
+  uploadProducts,
 })(BuyDetail);

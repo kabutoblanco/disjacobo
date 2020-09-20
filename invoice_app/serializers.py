@@ -35,12 +35,18 @@ class SaleSerializer(serializers.ModelSerializer):
         fields = ("id", "invoice", "ref")
 
 
+class SaleStatisticsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Sale
+        fields = ("date_record", )
+
+
 class DetailSerializer(serializers.ModelSerializer):
     product = ProductSerializer()
 
     class Meta:
         model = Detail
-        fields = ("id", "amount", "product")
+        fields = ("id", "amount", "product", "total")
 
 
 # Registers

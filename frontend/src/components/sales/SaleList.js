@@ -1,42 +1,67 @@
 import React, { Component } from 'react';
 
-import { Container, Button } from 'react-bootstrap';
+import { Container } from 'react-bootstrap';
 import CurrencyFormat from 'react-currency-format';
 import { Link } from 'react-router-dom';
 import ReactTable from 'react-table-6';
-import { getBuys } from '../../actions/invoice';
+import SaleView from './SaleView';
+import { getSales, resetSales, getDetails } from '../../actions/invoice';
 import { connect } from 'react-redux';
 var moment = require('moment');
 
-import './index.css';
+import '../dashboard/index.css';
 
-export class BuyList extends Component {
+export class SaleList extends Component {
   state = {
     amount: 0,
     payment: 0,
     product: {},
+    sale: null,
+    show: false,
+  };
+
+  onOpenDetail = (sale) => {
+    this.props.getDetails(sale.invoice.id);
+    this.setState({ sale: sale, show: true });
+  };
+
+  onClose = () => {
+    this.setState({ show: false });
   };
 
   componentDidMount() {
-    this.props.getBuys('today');
+    this.props.getSales('today');
   }
 
-  componentWillUnmount() {}
+  componentWillUnmount() {
+    this.props.resetSales();
+  }
 
   render() {
-    const { buys } = this.props;
-    const total = buys.reduce(function (a, b) {
+    const { sales } = this.props;
+    const { sale, show } = this.state;
+    const total = sales.reduce(function (a, b) {
       return a + b.invoice.total;
     }, 0);
     const columns = [
       {
         Header: 'REF',
         accessor: 'ref',
+        Cell: (props) => (
+          <span
+            style={{ textDecoration: 'underline blue', color: 'blue' }}
+            onClick={() => {
+              this.onOpenDetail(props.original);
+            }}>
+            {props.original.ref}
+            {props.original.id}
+          </span>
+        ),
         width: 100,
       },
       {
         id: 'name',
-        Header: 'Proveedor',
+        Header: 'Cliente',
         accessor: (d) => (d.invoice.user !== null ? d.invoice.user.username : 'N/A'),
         width: 150,
       },
@@ -64,7 +89,7 @@ export class BuyList extends Component {
       <Container className='pt-4'>
         <div className='w-100'>
           <span className='h5'>
-            Compras del día:{'  '}
+            Ventas del día:{'  '}
             <CurrencyFormat
               value={total}
               displayType={'text'}
@@ -72,13 +97,13 @@ export class BuyList extends Component {
               prefix={'$'}
             />
           </span>
-          <Link className='float-right link-button' to='/compras/add'>
+          <Link className='float-right link-button' to='/ventas/add'>
             AGREGAR
           </Link>
         </div>
         <ReactTable
           className='mt-3 mb-2'
-          data={buys}
+          data={sales}
           columns={columns}
           defaultPageSize={5}
           previousText='Atras'
@@ -87,15 +112,19 @@ export class BuyList extends Component {
           ofText='de'
           rowsText='filas'
         />
+        <SaleView show={show} sale={sale} onClose={this.onClose} />
       </Container>
     );
   }
 }
 
 const mapStateToProps = (state) => ({
-  buys: state.invoice.buys,
+  sales: state.invoice.sales,
+  details: state.invoice.details,
 });
 
 export default connect(mapStateToProps, {
-  getBuys,
-})(BuyList);
+  getSales,
+  resetSales,
+  getDetails,
+})(SaleList);

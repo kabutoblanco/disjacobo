@@ -88,6 +88,7 @@ class App extends Component {
                       exact
                       path={[
                         '/',
+                        '/home',
                         '/ventas',
                         '/compras',
                         '/inventario',

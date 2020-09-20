@@ -4,17 +4,40 @@ import {
   GET_PRODUCTS,
   RESET_PRODUCTS,
   ADD_PRODUCT,
-  GET_METAPRODUCTS,
-  RESET_METAPRODUCTS,
-  ADD_METAPRODUCT,
   GET_CATEGORIES,
-  GET_TRADEMARKS,
-  GET_PRESENTATIONS,
   ACTION_RUNNING,
   ACTION_END,
   UPDATE_PRODUCT,
+  UPLOAD_PRODUCTS,
+  GET_DETAIL_PRODUCT,
 } from './types';
 import { createMessage, returnErrors } from './messages';
+
+export const uploadProducts = (cvs_file) => (dispatch) => {
+  dispatch({ type: ACTION_RUNNING });
+  const form_data = new FormData();
+  form_data.append('csv_file', cvs_file[0], cvs_file[0].name);
+  form_data.append('title', 'file');
+  form_data.append('content', 'csv');
+  axios
+    .post('/api/product/upload', form_data, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    })
+    .then((res) => {
+      dispatch({
+        type: UPLOAD_PRODUCTS,
+        payload: res.data.products,
+      });
+      dispatch({ type: ACTION_END });
+      dispatch(createMessage({ addSale: 'Productos registrado' }));
+    })
+    .catch((err) => {
+      dispatch(returnErrors(err.response.data, err.response.status));
+      dispatch({ type: ACTION_END });
+    });
+};
 
 export const addProduct = (data) => (dispatch) => {
   dispatch({ type: ACTION_RUNNING });
@@ -69,6 +92,18 @@ export const resetProducts = () => (dispatch) => {
     type: RESET_PRODUCTS,
     payload: [],
   });
+};
+
+export const getDetail = (id) => (dispatch) => {
+  axios
+    .get(`/api/product/${id}/detail`)
+    .then((res) => {
+      dispatch({
+        type: GET_DETAIL_PRODUCT,
+        payload: res.data.detail,
+      });
+    })
+    .catch((err) => console.log(err));
 };
 
 export const getCategories = () => (dispatch) => {

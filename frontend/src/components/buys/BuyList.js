@@ -4,13 +4,13 @@ import { Container, Button } from 'react-bootstrap';
 import CurrencyFormat from 'react-currency-format';
 import { Link } from 'react-router-dom';
 import ReactTable from 'react-table-6';
-import { getSales } from '../../actions/invoice';
+import { getBuys } from '../../actions/invoice';
 import { connect } from 'react-redux';
 var moment = require('moment');
 
-import './index.css';
+import '../dashboard/index.css';
 
-export class SaleList extends Component {
+export class BuyList extends Component {
   state = {
     amount: 0,
     payment: 0,
@@ -18,14 +18,14 @@ export class SaleList extends Component {
   };
 
   componentDidMount() {
-    this.props.getSales('today');
+    this.props.getBuys('today');
   }
 
   componentWillUnmount() {}
 
   render() {
-    const { sales } = this.props;
-    const total = sales.reduce(function (a, b) {
+    const { buys } = this.props;
+    const total = buys.reduce(function (a, b) {
       return a + b.invoice.total;
     }, 0);
     const columns = [
@@ -36,7 +36,7 @@ export class SaleList extends Component {
       },
       {
         id: 'name',
-        Header: 'Cliente',
+        Header: 'Proveedor',
         accessor: (d) => (d.invoice.user !== null ? d.invoice.user.username : 'N/A'),
         width: 150,
       },
@@ -64,7 +64,7 @@ export class SaleList extends Component {
       <Container className='pt-4'>
         <div className='w-100'>
           <span className='h5'>
-            Ventas del día:{'  '}
+            Compras del día:{'  '}
             <CurrencyFormat
               value={total}
               displayType={'text'}
@@ -72,13 +72,13 @@ export class SaleList extends Component {
               prefix={'$'}
             />
           </span>
-          <Link className='float-right link-button' to='/ventas/add'>
+          <Link className='float-right link-button' to='/compras/add'>
             AGREGAR
           </Link>
         </div>
         <ReactTable
           className='mt-3 mb-2'
-          data={sales}
+          data={buys}
           columns={columns}
           defaultPageSize={5}
           previousText='Atras'
@@ -93,9 +93,9 @@ export class SaleList extends Component {
 }
 
 const mapStateToProps = (state) => ({
-  sales: state.invoice.sales,
+  buys: state.invoice.buys,
 });
 
 export default connect(mapStateToProps, {
-  getSales,
-})(SaleList);
+  getBuys,
+})(BuyList);

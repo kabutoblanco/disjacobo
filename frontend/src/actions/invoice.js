@@ -7,6 +7,8 @@ import {
   ADD_BUY,
   ACTION_RUNNING,
   ACTION_END,
+  RESET_SALES,
+  GET_DETAILS,
 } from './types';
 import { createMessage, returnErrors } from './messages';
 
@@ -37,6 +39,7 @@ export const getSales = (date) => (dispatch) => {
   axios
     .get(`/api/sale/${date}`)
     .then((res) => {
+      console.log(res.data)
       dispatch({
         type: GET_SALES,
         payload: res.data.sales,
@@ -70,6 +73,25 @@ export const getBuys = (date) => (dispatch) => {
       dispatch({
         type: GET_BUYS,
         payload: res.data.buys,
+      });
+    })
+    .catch((err) => console.log(err));
+};
+
+export const resetSales = () =>  (dispatch) => {
+  dispatch({
+    type: RESET_SALES,
+    payload: [],
+  });
+}
+
+export const getDetails = (invoice) => (dispatch) => {
+  axios
+    .get(`/api/detail/${invoice}/invoice`)
+    .then((res) => {
+      dispatch({
+        type: GET_DETAILS,
+        payload: res.data.details,
       });
     })
     .catch((err) => console.log(err));
