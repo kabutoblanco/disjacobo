@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { useState, useEffect } from 'react';
 
 import Inventory from '../inventories/Inventory';
 import BuyDetail from '../buys/BuyDetail';
@@ -8,37 +8,28 @@ import SaleList from '../sales/SaleList';
 import HomeIn from '../dashboard/HomeIn';
 import { resetSales } from '../../actions/invoice';
 import { connect } from 'react-redux';
+import { useLocation } from 'react-router-dom';
 
-class Dashboard extends Component {
-  onChange = () => {
-    const path = this.props.match.path;
-    switch (path) {
-      case '/':
-      case '/home':
-        this.props.resetSales();
-        return <HomeIn />;
-      case '/ventas':
-        this.props.resetSales();
-        return <SaleList />;
-      case '/compras':
-        return <BuyList />;
-      case '/inventario':
-        return <Inventory />;
-      case '/ventas/add':
-        return <SaleDetail />;
-      case '/compras/add':
-        return <BuyDetail />;
-      default:
-        return <></>;
-    }
-  };
-
-  render() {
-    return (
-      <div style={{ height: this.props.height + 'px' }}>
-        <this.onChange />
-      </div>
-    );
+function Dashboard(props) {
+  switch (useLocation().pathname) {
+    case '/':
+    case '/home':
+      console.log('renderizando putos 1');
+      return <HomeIn />;
+    case '/ventas':
+      props.resetSales();
+      return <SaleList />;
+    case '/compras':
+      console.log('renderizando putos 3');
+      return <BuyList />;
+    case '/inventario':
+      return <Inventory />;
+    case '/ventas/add':
+      return <SaleDetail />;
+    case '/compras/add':
+      return <BuyDetail />;
+    default:
+      return <></>;
   }
 }
 

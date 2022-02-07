@@ -1,13 +1,19 @@
-import { ADD_SALE, ADD_BUY, GET_SALES, GET_BUYS, RESET_SALES, GET_DETAILS } from '../actions/types';
+import { ADD_SALE, ADD_BUY, GET_SALES, GET_BUYS, RESET_SALES, GET_DETAILS, GET_STATITICS } from '../actions/types';
 
 const initialState = {
   sales: [],
   buys: [],
   details: [],
+  statitics: [],
 };
 
 export default function (state = initialState, action) {
   switch (action.type) {
+    case GET_STATITICS:
+      return {
+        ...state,
+        statitics: action.payload,
+      };
     case RESET_SALES:
     case GET_SALES:
       return {

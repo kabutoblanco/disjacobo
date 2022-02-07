@@ -27,7 +27,7 @@ SECRET_KEY = config('SECRET_KEY')
 DEBUG = True
 
 ALLOWED_HOSTS = ['mdquilindo.pythonanywhere.com',
-                 'localhost', '127.0.0.1:8000', '192.168.1.8:8000', '192.168.0.17', '192.168.0.27']
+                 'localhost', '127.0.0.1:8000', '192.168.1.8:8000', '192.168.0.17', '192.168.0.27', '192.168.1.52']
 
 AUTH_USER_MODEL = 'user_app.User'
 
@@ -95,9 +95,9 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'disjacobo',
-        'USER': 'root',
-        'PASSWORD': '',
-        'HOST': '127.0.0.1',
+        'USER': 'mdquilindo',
+        'PASSWORD': config('PASS_DB'),
+        'HOST': 'mdquilindo.mysql.pythonanywhere-services.com',
         'PORT': '3306'
     },
 }

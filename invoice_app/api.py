@@ -12,7 +12,7 @@ from rest_framework.status import (
     HTTP_201_CREATED,
     HTTP_202_ACCEPTED
 )
-from .serializers import SaleSerializer, BuySerializer, DetailSerializer, RegisterSaleSerializer, RegisterBuySerializer, RegisterDetailSerializer, RegisterPaymentSerializer, RegisterInvoiceSerializer, SaleStatisticsSerializer
+from .serializers import SaleSerializer, BuySerializer, DetailSerializer, RegisterSaleSerializer, RegisterBuySerializer, RegisterDetailSerializer, RegisterPaymentSerializer, RegisterInvoiceSerializer, SaleStatisticsSerializer, DetailAuxSerializer
 
 import json
 import pytz
@@ -38,9 +38,8 @@ class SaleListAPI(generics.RetrieveAPIView):
                     dt.datetime.combine(dt.date.today(), dt.time.max))
                 queryset = Sale.objects.filter(
                     invoice__date_record__range=(today_min, today_max))
-                print(queryset)
                 queryset = queryset.extra({'date': "date(CONVERT_TZ(invoice_app_sale.date_record, '+00:00', '-05:00'))"}).values(
-                    'date').annotate(total=Sum('invoice__total'), util=Sum('util'))                
+                    'date').annotate(total=Sum('invoice__total'), util=Sum('util'))
                 instances = {"sales": list(queryset)}
                 return JsonResponse(instances, status=HTTP_200_OK, content_type="application/json")
             elif kwargs["date"] == "last_month":
@@ -50,14 +49,80 @@ class SaleListAPI(generics.RetrieveAPIView):
                     dt.datetime.combine(dt.date.today(), dt.time.max))
                 queryset = Sale.objects.filter(
                     invoice__date_record__range=(today_min, today_max))
-                print(queryset)
                 queryset = queryset.extra({'date': "date(CONVERT_TZ(invoice_app_sale.date_record, '+00:00', '-05:00'))"}).values(
-                    'date').annotate(total=Sum('invoice__total'), util=Sum('util'))                
+                    'date').annotate(total=Sum('invoice__total'), util=Sum('util'))
                 instances = {"sales": list(queryset)}
                 return JsonResponse(instances, status=HTTP_200_OK, content_type="application/json")
+            elif kwargs["date"] == "last_4week":
+                today_min = pytz.timezone('America/Bogota').localize(
+                    dt.datetime.combine(dt.date.today() - dt.timedelta(days=30), dt.time.min))
+                today_max = pytz.timezone('America/Bogota').localize(
+                    dt.datetime.combine(dt.date.today(), dt.time.max))
+                queryset = Sale.objects.filter(
+                    invoice__date_record__range=(today_min, today_max))
+                queryset = queryset.extra(
+                    {'year': "year(CONVERT_TZ(invoice_app_sale.date_record, '+00:00', '-05:00'))", 'week': "week(CONVERT_TZ(invoice_app_sale.date_record, '+00:00', '-05:00'))"}).values(
+                    'year', 'week').annotate(total=Sum('invoice__total'), util=Sum('util'))
+                instances = {"sales": list(queryset)}
+                return JsonResponse(instances, status=HTTP_200_OK, content_type="application/json")
+            else:
+                split = kwargs['date'].split('-')
+                print(*split)
+                today_min = pytz.timezone('America/Bogota').localize(
+                    dt.datetime.combine(dt.datetime(int(split[0]), int(split[1]), int(split[2])), dt.time.min))
+                today_max = pytz.timezone('America/Bogota').localize(
+                    dt.datetime.combine(dt.datetime(int(split[0]), int(split[1]), int(split[2])), dt.time.max))
+                queryset = Sale.objects.filter(
+                    invoice__date_record__range=(today_min, today_max))
         else:
             queryset = Sale.objects.all()
         return Response({"sales": SaleSerializer(queryset, many=True).data})
+
+
+class CategoryHistoryAPI(generics.RetrieveAPIView):
+    serializer_class = DetailAuxSerializer
+
+    def get(self, request, *args, **kwargs):
+        if kwargs["date"]:
+            if kwargs["date"] == "last_month":
+                today_min = pytz.timezone('America/Bogota').localize(
+                    dt.datetime.combine(dt.date.today() - dt.timedelta(days=30), dt.time.min))
+                today_max = pytz.timezone('America/Bogota').localize(
+                    dt.datetime.combine(dt.date.today(), dt.time.max))
+                queryset = Detail.objects.filter(
+                    date_record__range=(today_min, today_max), is_sale=True)
+                queryset = queryset.values('product__category', 'product__category__name').annotate(
+                    total=Sum('total'), util=Sum('util')).order_by('-util')[:6]
+                instances = {"sales": list(queryset)}
+            elif kwargs["date"] == "last_week":
+                today_min = pytz.timezone('America/Bogota').localize(
+                    dt.datetime.combine(dt.date.today() - dt.timedelta(days=7), dt.time.min))
+                today_max = pytz.timezone('America/Bogota').localize(
+                    dt.datetime.combine(dt.date.today(), dt.time.max))
+                queryset = Detail.objects.filter(
+                    date_record__range=(today_min, today_max), is_sale=True)
+                queryset = queryset.values('product__category', 'product__category__name').annotate(
+                    total=Sum('total'), util=Sum('util')).order_by('-util')[:6]
+                instances = {"sales": list(queryset)}
+            elif kwargs["date"] == "last_2week":
+                today_min = pytz.timezone('America/Bogota').localize(
+                    dt.datetime.combine(dt.date.today() - dt.timedelta(days=15), dt.time.min))
+                today_max = pytz.timezone('America/Bogota').localize(
+                    dt.datetime.combine(dt.date.today(), dt.time.max))
+                queryset = Detail.objects.filter(
+                    date_record__range=(today_min, today_max), is_sale=True)
+                queryset = queryset.values('product__category', 'product__category__name').annotate(total=Sum('total'), util=Sum('util')).order_by('-util')[:6]
+                instances = {"sales": list(queryset)}
+            else:
+                today_min = pytz.timezone('America/Bogota').localize(
+                    dt.datetime.combine(dt.date.today(), dt.time.min))
+                today_max = pytz.timezone('America/Bogota').localize(
+                    dt.datetime.combine(dt.date.today(), dt.time.max))
+                queryset = Detail.objects.filter(
+                    date_record__range=(today_min, today_max), is_sale=True)
+                queryset = queryset.values('product__category', 'product__category__name').annotate(total=Sum('total'), util=Sum('util')).order_by('-util')[:6]
+                instances = {"sales": list(queryset)}
+        return JsonResponse(instances, status=HTTP_200_OK, content_type="application/json")
 
 
 class BuyListAPI(generics.RetrieveAPIView):
@@ -79,12 +144,42 @@ class BuyListAPI(generics.RetrieveAPIView):
                     dt.datetime.combine(dt.date.today(), dt.time.max))
                 queryset = Buy.objects.filter(
                     invoice__date_record__range=(today_min, today_max))
-                print(BuySerializer(queryset, many=True).data)
+                print(queryset)
+                queryset = queryset.extra({'date': "date(CONVERT_TZ(invoice_app_sale.date_record, '+00:00', '-05:00'))"}).values(
+                    'date')
+                instances = {"sales": list(queryset)}
+                return JsonResponse(instances, status=HTTP_200_OK, content_type="application/json")
             elif kwargs["date"] == "last_month":
                 today_min = pytz.timezone('America/Bogota').localize(
                     dt.datetime.combine(dt.date.today() - dt.timedelta(days=30), dt.time.min))
                 today_max = pytz.timezone('America/Bogota').localize(
                     dt.datetime.combine(dt.date.today(), dt.time.max))
+                queryset = Buy.objects.filter(
+                    invoice__date_record__range=(today_min, today_max))
+                print(queryset)
+                queryset = queryset.extra({'date': "date(CONVERT_TZ(invoice_app_sale.date_record, '+00:00', '-05:00'))"}).values(
+                    'date')
+                instances = {"sales": list(queryset)}
+                return JsonResponse(instances, status=HTTP_200_OK, content_type="application/json")
+            elif kwargs["date"] == "last_4week":
+                today_min = pytz.timezone('America/Bogota').localize(
+                    dt.datetime.combine(dt.date.today() - dt.timedelta(days=30), dt.time.min))
+                today_max = pytz.timezone('America/Bogota').localize(
+                    dt.datetime.combine(dt.date.today(), dt.time.max))
+                queryset = Buy.objects.filter(
+                    invoice__date_record__range=(today_min, today_max))
+                print(queryset)
+                queryset = queryset.extra(
+                    {'year': "year(CONVERT_TZ(invoice_app_sale.date_record, '+00:00', '-05:00'))", 'month': "month(CONVERT_TZ(invoice_app_sale.date_record, '+00:00', '-05:00'))", 'week': "week(CONVERT_TZ(invoice_app_sale.date_record, '+00:00', '-05:00'))"}).values(
+                    'year', 'month', 'week')
+                instances = {"sales": list(queryset)}
+                return JsonResponse(instances, status=HTTP_200_OK, content_type="application/json")
+            else:
+                split = kwargs['date'].split('-')
+                today_min = pytz.timezone('America/Bogota').localize(
+                    dt.datetime.combine(dt.datetime(int(split[0]), int(split[1]), int(split[2])), dt.time.min))
+                today_max = pytz.timezone('America/Bogota').localize(
+                    dt.datetime.combine(dt.datetime(int(split[0]), int(split[1]), int(split[2])), dt.time.max))
                 queryset = Buy.objects.filter(
                     invoice__date_record__range=(today_min, today_max))
         else:
@@ -113,10 +208,10 @@ class RegisterSaleAPI(generics.GenericAPIView):
             "serializer": RegisterDetailSerializer,
             "is_sale": True
         })
-        sale.record_payments({
-            "payments": request.data["payments"],
-            "serializer": RegisterPaymentSerializer,
-        })
+        # sale.record_payments({
+        #     "payments": request.data["payments"],
+        #     "serializer": RegisterPaymentSerializer,
+        # })
         sale = sale.record_sale({
             "sale": request.data["sale"],
             "serializer": RegisterSaleSerializer
@@ -137,10 +232,10 @@ class RegisterBuyAPI(generics.GenericAPIView):
             "serializer": RegisterDetailSerializer,
             "is_sale": False
         })
-        buy.record_payments({
-            "payments": request.data["payments"],
-            "serializer": RegisterPaymentSerializer,
-        })
+        # buy.record_payments({
+        #     "payments": request.data["payments"],
+        #     "serializer": RegisterPaymentSerializer,
+        # })
         buy = buy.record_buy({
             "buy": request.data["buy"],
             "serializer": RegisterBuySerializer

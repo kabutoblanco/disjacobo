@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { useState } from 'react';
 
 //ROUTER
 import { Link } from 'react-router-dom';
@@ -13,95 +13,78 @@ import PropTypes from 'prop-types';
 import { Button, Nav, Navbar } from 'react-bootstrap';
 import './Header.css';
 
-export class Header extends Component {
-  static propTypes = {
-    auth: PropTypes.object.isRequired,
+function Header(props) {
+  const [select, setSelect] = useState(false);
+  const [check, setCheck] = useState(true);
+
+  const onLogout = () => {
+    props.logout();
   };
 
-  state = {
-    select: false,
-    check: true,
+  const onLink = () => {
+    setSelect(false);
   };
 
-  onLogout = () => {
-    this.props.logout();
+  const onNav = () => {
+    setCheck(true);
   };
 
-  onLink = () => {
-    this.setState({ option: true, select: false });
-  };
+  const [path, setPath] = useState(window.location.hash);
 
-  onNav = () => {
-    this.setState({ check: true });
-  };
+  const { isAuthenticated, user } = props.auth;
+  const authLinks = (
+    <>
+      <Button variant='outline-success' className='p-0 btn-salir float-right' onClick={onLogout}>
+        SALIR
+      </Button>
+      <input
+        type='checkbox'
+        name='check'
+        id='expand-menu'
+        checked={check}
+        value={check}
+        onChange={() => setCheck(!check)}
+      />
+      <label className='label-menu' htmlFor='expand-menu'>
+        <img src='/static/frontend/img/menu.png' height='15' alt='' />
+      </label>
+      <span className='pl-3 h5'>DISJACOBO</span>
+      <span className='pr-2 float-right'>{user === null ? '-' : user.username}</span>
+      <NavLateral height={props.height} onChange={onNav} />
+    </>
+  );
+  const guestLinks = (
+    <Nav className='main-menu'>
+      <Link
+        to='/inicio'
+        className={path.endsWith('inicio') ? 'active-custom' : ''}
+        onClick={onLink}></Link>
+    </Nav>
+  );
 
-  onChange = (event) => {
-    const target = event.target;
-    const value = target.type === 'checkbox' ? target.checked : target.value;
-    const name = target.name;
-    this.setState({ [name]: value });
-  };
-
-  render() {
-    const path = window.location.hash;
-    const { isAuthenticated, user } = this.props.auth;
-    const authLinks = (
-      <>
-        <Button
-          variant='outline-success'
-          className='p-0 btn-salir float-right'
-          onClick={this.onLogout}>
-          SALIR
-        </Button>
-        <input
-          type='checkbox'
-          name='check'
-          id='expand-menu'
-          checked={this.state.check}
-          value={this.state.check}
-          onChange={this.onChange}
-        />
-        <label className='label-menu' htmlFor='expand-menu'>
-          <img src='/static/frontend/img/menu.png' height='15' alt='' />
-        </label>
-        <span className='pl-3 h5'>DISJACOBO</span>
-        <span className='pr-2 float-right'>{user === null ? '-' : user.username}</span>
-        <NavLateral height={this.props.height} onChange={this.onNav} />
-      </>
-    );
-    const guestLinks = (
-      <Nav className='main-menu'>
-        <Link
-          to='/inicio'
-          className={path.endsWith('inicio') ? 'active-custom' : ''}
-          onClick={this.onLink}></Link>
-      </Nav>
-    );
-    return (
-      <div id='nav-top' style={{ height: '43px' }}>
-        <Navbar
-          expand='sm'
-          expanded={this.state.select}
-          style={{
-            display: isAuthenticated ? 'block' : 'flex',
-            height: isAuthenticated ? '43px' : 'auto',
-          }}>
-          {!isAuthenticated ? (
-            <Navbar.Toggle
-              aria-controls='main-nav'
-              onClick={() => this.setState({ select: !this.state.select })}
-            />
-          ) : (
-            authLinks
-          )}
-          <Navbar.Collapse id='main-nav'>
-            {isAuthenticated ? <></> : guestLinks}
-          </Navbar.Collapse>
-        </Navbar>
-      </div>
-    );
-  }
+  return (
+    <div id='nav-top' style={{ height: '43px' }}>
+      <Navbar
+        expand='sm'
+        expanded={select}
+        style={{
+          display: isAuthenticated ? 'block' : 'flex',
+          height: isAuthenticated ? '43px' : 'auto',
+        }}>
+        {!isAuthenticated ? (
+          <Navbar.Toggle aria-controls='main-nav' onClick={() => setSelect(!state.select)} />
+        ) : (
+          authLinks
+        )}
+        <Navbar.Collapse id='main-nav'>{isAuthenticated ? <></> : guestLinks}</Navbar.Collapse>
+      </Navbar>
+    </div>
+  );
 }
+
+Header.propTypes = {
+  auth: PropTypes.object.isRequired,
+};
 
 const mapStateToProps = (state) => ({
   auth: state.auth,

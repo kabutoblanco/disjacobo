@@ -1,7 +1,9 @@
 from django.urls import path, include
-from .api import SaleListAPI, BuyListAPI, DetailListAPI, RegisterSaleAPI, RegisterBuyAPI, UploadBuysAPI
+from .api import SaleListAPI, BuyListAPI, DetailListAPI, RegisterSaleAPI, RegisterBuyAPI, UploadBuysAPI, CategoryHistoryAPI
 
 urlpatterns = [
+
+    path('api/sale/category/<str:date>', CategoryHistoryAPI.as_view()),
     path('api/sale', SaleListAPI.as_view()),
     path('api/buy', BuyListAPI.as_view()),
     path('api/detail/<int:invoice>/invoice', DetailListAPI.as_view()),

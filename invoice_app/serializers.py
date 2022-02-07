@@ -49,6 +49,13 @@ class DetailSerializer(serializers.ModelSerializer):
         fields = ("id", "amount", "product", "total")
 
 
+class DetailAuxSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Detail
+        fields = ("id", "product__category", "util", "total")
+
+
 # Registers
 class RegisterInvoiceSerializer(serializers.ModelSerializer):
     class Meta:

@@ -32,3 +32,7 @@
   border: 1px solid #ced4da !important;
   border-radius: .25rem !important;
 }
+
+.modal-table > .table-responsive {
+  max-height: 250px;
+}

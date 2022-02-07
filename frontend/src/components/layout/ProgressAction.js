@@ -1,21 +1,19 @@
-import React, { Component } from 'react';
+import React from 'react';
 
 import { ProgressBar } from 'react-bootstrap';
 import { connect } from 'react-redux';
 
-export class ProgressAction extends Component {
-  render() {
-    return (
-      <ProgressBar
-        animated
-        now={100}
-        style={{
-          borderRadius: 0,
-          display: this.props.isRunning ? 'flex' : 'none',
-        }}
-      />
-    );
-  }
+function ProgressAction(props) {
+  return (
+    <ProgressBar
+      animated
+      now={100}
+      style={{
+        borderRadius: 0,
+        display: props.isRunning ? 'flex' : 'none',
+      }}
+    />
+  );
 }
 
 const mapStateToProps = (state) => ({

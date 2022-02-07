@@ -5,6 +5,8 @@ export const AUTH_ERROR = 'AUTH_ERROR';
 export const LOGIN_FAIL = 'LOGIN_FAIL';
 export const LOGOUT_SUCCESS = 'LOGOUT_SUCCESS';
 
+export const GET_STATITICS = 'GET_STATITICS';
+
 export const GET_PROVIDERS = 'GET_PROVIDERS';
 export const GET_CLIENTS = 'GET_CLIENTS';
 export const GET_DETAILS = 'GET_DETAILS';

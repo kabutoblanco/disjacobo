@@ -102,7 +102,7 @@ class UploadProductsAPI(generics.GenericAPIView):
         i = 0
         for line in lines:
             if line and i > 0:
-                # print(line)
+                print(line)
                 fields = line.split(",")
                 ref = fields[0]
                 amount = fields[2]
@@ -117,6 +117,19 @@ class UploadProductsAPI(generics.GenericAPIView):
                         product.name = name
                         product.amount = amount
                         product.save()
+                    try:
+                        category = Category.objects.get(name=fields[3])
+                        product.category = category
+                        product.save()
+                    except:
+                        data = {"name": fields[3]}
+                        data = json.dumps(data)
+                        data = json.loads(data)
+                        serializer = self.serializer_category(data=data)
+                        serializer.is_valid(raise_exception=True)
+                        category = serializer.save()
+                        product.category = category
+                        product.save()
                 except Product.DoesNotExist:
                     try:
                         category = Category.objects.get(name=fields[3])
@@ -130,14 +143,16 @@ class UploadProductsAPI(generics.GenericAPIView):
                         print(category)
                     try:
                         trademark = Trademark.objects.get(name=fields[6])
+                        print('get ', "|", fields[6], "|")
                     except Trademark.DoesNotExist:
+                        print("A{}A".format(fields[6]))
                         data = {"name": fields[6]}
                         data = json.dumps(data)
                         data = json.loads(data)
                         serializer = self.serializer_trademark(data=data)
                         serializer.is_valid(raise_exception=True)
                         trademark = serializer.save()
-                        print(trademark)
+                    print("count: ", Trademark.objects.count())
                     data = {"ref": ref, "name": fields[1], "amount": int(
                         amount), "category": int(category.id), "trademark": int(trademark.id), "price_cost": float(fields[4]), "price_sale": float(fields[5])}
                     data = json.dumps(data)

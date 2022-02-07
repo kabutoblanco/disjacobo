@@ -1,88 +1,141 @@
-import React, { Component } from 'react';
+import React, { useEffect, useState } from 'react';
 
-import { Button, Modal, ListGroup } from 'react-bootstrap';
+import { Button, Modal, ListGroup, Form } from 'react-bootstrap';
 import CurrencyFormat from 'react-currency-format';
-import { getDetail } from '../../actions/product';
-import { connect } from 'react-redux';
 
-export class ProductDetail extends Component {
-  componentDidMount() {
-    this.props.getDetail(this.props.id);
-  }
+function ProductDetail(props) {
+  const [item, setItem] = useState({ id: -1, price_cost: 0, price_sale: 0, stock: 0 });
 
-  render() {
-    const { product, detail } = this.props;
-    const rate = () => {
-      let rate = detail !== null ? detail.total : 0;
-      if (rate === 0)
-        return <ListGroup.Item variant='danger'>Tasa de venta: {'ninguno vendido'}</ListGroup.Item>;
-      else if (rate > 0 && rate <= 2)
-        return <ListGroup.Item variant='warning'>Tasa de venta: {'poca rotación'}</ListGroup.Item>;
-      else if (rate > 2 && rate <= 5)
-        return <ListGroup.Item variant='info'>Tasa de venta: {'rotación normal'}</ListGroup.Item>;
-      else if (rate > 5 && rate <= 7)
-        <ListGroup.Item variant='primary'>Tasa de venta: {'alto rotación'}</ListGroup.Item>;
-      else
-        return (
-          <ListGroup.Item variant='success'>
-            Tasa de venta: {'es una locura de ventas'}
-          </ListGroup.Item>
-        );
+  const onChange = (event) => {
+    const { name, value } = event.target;
+    setItem({ ...item, [name]: value });
+  };
+
+  const onSubmit = () => {
+    const { id } = props.product;
+    const data = {
+      price_sale: item.price_sale,
+      price_cost: item.price_cost,
+      stock: item.stock,
     };
-    return (
-      <Modal show={this.props.show} onHide={this.props.onClose}>
-        <Modal.Header closeButton>
-          <Modal.Title>{product !== null ? product.name : ''}</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          <ListGroup>
-            <ListGroup.Item>Stock: {product !== null ? product.stock : 0}</ListGroup.Item>
-            {rate()}
-            <ListGroup.Item>
-              Costo:{' '}
-              <CurrencyFormat
-                value={product !== null ? product.price_cost : 0}
-                displayType={'text'}
-                thousandSeparator={true}
-                prefix={'$'}
-              />
-            </ListGroup.Item>
-            <ListGroup.Item>
-              Precio:{' '}
-              <CurrencyFormat
-                value={product !== null ? product.price_sale : 0}
-                displayType={'text'}
-                thousandSeparator={true}
-                prefix={'$'}
-              />
-            </ListGroup.Item>
-            <ListGroup.Item>
-              Utilidad:{' '}
-              {(
-                (product !== null
-                  ? product.price_cost > 0
-                    ? product.price_sale / product.price_cost - 1
-                    : 1
-                  : 0) * 100
-              ).toFixed(0)}
-              %
-            </ListGroup.Item>
-          </ListGroup>
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant='secondary' onClick={this.props.onClose}>
-            Cerrar
-          </Button>
-        </Modal.Footer>
-      </Modal>
-    );
-  }
+    props.updateProduct(id, data);
+  };
+
+  useEffect(() => {
+    const product = props.product;
+    if (product !== null)
+      setItem({
+        ...item,
+        price_sale: product.price_sale,
+        price_cost: product.price_cost,
+        stock: product.stock,
+      });
+  }, [props.product]);
+
+  const { product, detail } = props;
+  const rate = () => {
+    console.log('hasta aqui si');
+    let rate = detail !== null ? detail.total : 0;
+    if (rate === 0)
+      return (
+        <ListGroup.Item variant='danger'>
+          <p>
+            {' '}
+            Tasa de venta: {rate} {'ninguno vendido'}
+          </p>
+        </ListGroup.Item>
+      );
+    else if (rate > 0 && rate <= 2)
+      return (
+        <ListGroup.Item variant='warning'>
+          <p>
+            {' '}
+            Tasa de venta: {rate} {'poca rotación'}
+          </p>
+        </ListGroup.Item>
+      );
+    else if (rate > 2 && rate <= 5)
+      return (
+        <ListGroup.Item variant='info'>
+          <p>
+            {' '}
+            Tasa de venta: {rate} {'rotación normal'}
+          </p>
+        </ListGroup.Item>
+      );
+    else if (rate > 5 && rate <= 7)
+      return (
+        <ListGroup.Item variant='primary'>
+          <p>
+            {' '}
+            Tasa de venta: {rate} {'alto rotación'}
+          </p>
+        </ListGroup.Item>
+      );
+    else
+      return (
+        <ListGroup.Item variant='success'>
+          <p>
+            {' '}
+            Tasa de venta: {rate} {'es una locura de ventas'}
+          </p>
+        </ListGroup.Item>
+      );
+  };
+
+  return (
+    <Modal show={props.show} onHide={props.onClose}>
+      <Modal.Header closeButton>
+        <Modal.Title>{props.product !== null ? props.product.name : ''}</Modal.Title>
+      </Modal.Header>
+      <Modal.Body>
+        <ListGroup>
+          <ListGroup.Item>
+            <Form.Label>Stock</Form.Label>
+            <Form.Control type='number' name='stock' value={item.stock} onChange={onChange} />
+          </ListGroup.Item>
+          {rate()}
+          <ListGroup.Item>
+            Costo:{' '}
+            <CurrencyFormat
+              value={item.price_cost}
+              displayType={'text'}
+              thousandSeparator={true}
+              prefix={'$'}
+            />
+          </ListGroup.Item>
+          <ListGroup.Item>
+            Precio:{' '}
+            <CurrencyFormat
+              value={item.price_sale}
+              displayType={'text'}
+              thousandSeparator={true}
+              prefix={'$'}
+            />
+          </ListGroup.Item>
+          <ListGroup.Item>
+            Utilidad:{' '}
+            {(
+              (product !== null
+                ? item.price_cost > 0
+                  ? item.price_sale / item.price_cost - 1
+                  : 1
+                : 0) * 100
+            ).toFixed(0)}
+            %
+          </ListGroup.Item>
+        </ListGroup>
+      </Modal.Body>
+      <Modal.Footer>
+        <Button variant='secondary' onClick={props.onClose}>
+          Cerrar
+        </Button>
+        <Button variant='primary' onClick={onSubmit}>
+          Actualizar
+        </Button>
+      </Modal.Footer>
+    </Modal>
+  );
 }
 
-const mapStateToProps = (state) => ({
-  detail: state.product.detail,
-});
-
-export default connect(mapStateToProps, {
-  getDetail,
-})(ProductDetail);
+export default ProductDetail;

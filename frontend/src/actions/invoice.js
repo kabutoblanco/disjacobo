@@ -9,6 +9,7 @@ import {
   ACTION_END,
   RESET_SALES,
   GET_DETAILS,
+  GET_STATITICS
 } from './types';
 import { createMessage, returnErrors } from './messages';
 
@@ -92,6 +93,19 @@ export const getDetails = (invoice) => (dispatch) => {
       dispatch({
         type: GET_DETAILS,
         payload: res.data.details,
+      });
+    })
+    .catch((err) => console.log(err));
+};
+
+export const getStatitics = (date) => (dispatch) => {
+  axios
+    .get(`/api/sale/category/${date}`)
+    .then((res) => {
+      console.log(res.data)
+      dispatch({
+        type: GET_STATITICS,
+        payload: res.data.sales,
       });
     })
     .catch((err) => console.log(err));
