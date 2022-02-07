@@ -4,7 +4,7 @@ Para probar un demo solo ingresa a la pagina de disjacobo.com [https://mdquilind
 
 Las credenciales para invitado son,
 
-Username: invitado
+Username: invitado -
 Password: Colombia2021
 
 Una vez ingresa al sistema, podrá abrir el menú hamburguesa:
